@@ -13,7 +13,7 @@ const HomeModal = () => {
       <div className='flex items-center justify-center gap-2'>
         <Link href='/join'><Button className='px-5 py-4'>Join Room</Button></Link>
         <Link href='/new'>
-          <Button variant={'secondary'}>Create Room</Button>
+          <Button className='px-5 py-4' variant={'secondary'}>Create Room</Button>
         </Link>
       </div>
     </ModalSection>

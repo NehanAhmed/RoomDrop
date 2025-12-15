@@ -109,6 +109,7 @@ const Page = () => {
 
   return (
     <main className="w-full min-h-screen font-mono flex justify-center items-center">
+      
       {/* Success Dialog */}
       <Dialog open={success} onOpenChange={handleCloseDialog}>
         <DialogContent>
@@ -122,6 +123,7 @@ const Page = () => {
             <div className='w-full flex justify-between items-center gap-3 p-3 bg-muted rounded-lg'>
               <p className='text-lg font-bold font-mono'>{data?.code}</p>
               <CopyButton 
+                variant='outline'
                 textToCopy={data?.code || ''} 
                 onCopySuccess={() => toast.success('Room code copied!')}
                 className='p-2 border rounded hover:bg-gray-100'
