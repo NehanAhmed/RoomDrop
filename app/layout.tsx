@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-sans' });
@@ -31,19 +30,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased w-full min-h-screen `}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Toaster position="top-right"
-            richColors
-            closeButton
-            duration={3000} />
 
-          {children}
-        </ThemeProvider>
+        <Toaster position="top-right"
+          richColors
+          closeButton
+          duration={3000} />
+
+        {children}
+
       </body>
     </html>
   );
