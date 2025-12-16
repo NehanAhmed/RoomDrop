@@ -50,7 +50,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     }
 
     const session = getUserSession()
-    
+
     if (!session || session.roomCode !== roomCode) {
       // User hasn't joined this room, redirect to join page
       toast.error('Please join the room first')
@@ -64,9 +64,12 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     // Load existing messages
     fetchMessages()
   }, [roomCode, router])
+  const hasLoadedRef = useRef(false)
 
   const fetchMessages = async () => {
     try {
+      if (hasLoadedRef.current) return
+      hasLoadedRef.current = true
       const response = await fetch(`/api/messages/${roomCode}`)
       if (response.ok) {
         const data = await response.json()
@@ -88,12 +91,12 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!inputMessage.trim() || sending || !currentUser) return
 
     setSending(true)
     const tempId = `temp-${Date.now()}`
-    
+
     try {
       // Add message to local state immediately (optimistic update)
       const newMessage: Message = {
@@ -102,7 +105,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
         message: inputMessage.trim(),
         timestamp: new Date().toISOString(),
       }
-      
+
       setMessages(prev => [...prev, newMessage])
       setInputMessage('')
 
@@ -125,7 +128,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
         // Replace temp message with server response
         const data = await response.json()
         if (data.message) {
-          setMessages(prev => 
+          setMessages(prev =>
             prev.map(m => m.id === tempId ? data.message : m)
           )
         }
@@ -140,18 +143,15 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage(e)
-    }
-  }
+  if (e.key === 'Enter' && e.shiftKey) return
+}
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     })
   }
 
@@ -190,7 +190,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Messages Area - Scrollable */}
-      <div 
+      <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto scroll-smooth"
       >
@@ -215,16 +215,14 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
               return (
                 <div
                   key={msg.id}
-                  className={`flex items-start gap-3 ${
-                    isCurrentUser ? 'flex-row-reverse' : ''
-                  }`}
+                  className={`flex items-start gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''
+                    }`}
                 >
                   {/* Avatar */}
                   {showAvatar ? (
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 ${
-                        isCurrentUser ? 'bg-primary' : getAvatarColor(msg.user)
-                      }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 ${isCurrentUser ? 'bg-primary' : getAvatarColor(msg.user)
+                        }`}
                     >
                       {getInitials(msg.user)}
                     </div>
@@ -245,11 +243,10 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                       </div>
                     )}
                     <div
-                      className={`rounded-lg px-4 py-2 ${
-                        isCurrentUser
-                          ? 'bg-primary text-primary-foreground rounded-tr-none'
-                          : 'bg-muted text-foreground rounded-tl-none'
-                      }`}
+                      className={`rounded-lg px-4 py-2 ${isCurrentUser
+                        ? 'bg-primary text-primary-foreground rounded-tr-none'
+                        : 'bg-muted text-foreground rounded-tl-none'
+                        }`}
                     >
                       <p className="text-sm whitespace-pre-wrap break-words">
                         {msg.message}
