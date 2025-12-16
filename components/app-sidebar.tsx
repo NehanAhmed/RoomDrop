@@ -80,7 +80,7 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupLabel>
-                        Users ({roomData.participants.length})
+                        Users ({roomData?.participants.length ?? 0})
                     </SidebarGroupLabel>
 
                     <SidebarGroupContent className="space-y-2">
