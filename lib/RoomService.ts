@@ -11,8 +11,8 @@ export interface Room {
     participants: string[];
     createdAt: string;
     expiresAt: string;
-    duration: number; // in minutes
-    participantsCount: number; // max participants
+    duration: number;
+    participantsCount: number;
     messageCount: number;
 }
 
@@ -32,9 +32,6 @@ export interface RoomInfo extends Room {
 // ROOM OPERATIONS
 // ============================================
 
-/**
- * Generate a random room code in format ABC-123
- */
 function generateRoomCode(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
@@ -44,16 +41,11 @@ function generateRoomCode(): string {
     return code.slice(0, 3) + '-' + code.slice(3);
 }
 
-/**
- * Create a new room
- * FIX: Removed the logic that initialized messages as a string '[]'
- */
 export async function createRoom(
     userName: string,
-    duration: number, // minutes
+    duration: number,
     participantsCount: number = 5
 ): Promise<{ roomCode: string; expiresAt: Date }> {
-    // 1. Generate unique room code
     let roomCode = generateRoomCode();
     let attempts = 0;
     const maxAttempts = 10;
@@ -69,7 +61,6 @@ export async function createRoom(
         throw new Error('Failed to generate unique room code');
     }
 
-    // 2. Calculate expiration
     const expiresInSeconds = duration * 60;
     const expiresAt = new Date(Date.now() + expiresInSeconds * 1000);
 
@@ -84,47 +75,36 @@ export async function createRoom(
         messageCount: 0,
     };
 
-    // 3. Store room in Redis
     await redis.setex(
         `room:${roomCode}`,
         expiresInSeconds,
         JSON.stringify(roomData)
     );
 
-    // NOTE: We do NOT initialize `messages:${roomCode}` here. 
-    // Redis creates the List automatically on the first lpush.
-
-    // 4. Add creator to online users
     await redis.sadd(`online:${roomCode}`, userName);
     await redis.expire(`online:${roomCode}`, expiresInSeconds);
 
     return { roomCode, expiresAt };
 }
 
-/**
- * Get room data (Basic)
- */
 export async function getRoom(roomCode: string): Promise<Room | null> {
-    const roomData = await redis.get<Room>(`room:${roomCode}`);
+    const roomData = await redis.get(`room:${roomCode}`);
     if (!roomData) return null;
-    return roomData; // Upstash/Redis automatically parses JSON if using the generic <Room>
+    
+    // Parse if string, otherwise assume it's already parsed
+    if (typeof roomData === 'string') {
+        return JSON.parse(roomData);
+    }
+    return roomData as Room;
 }
 
-/**
- * Get detailed room info with live data
- * FIX: Uses llen instead of get for message count
- */
 export async function getRoomInfo(roomCode: string): Promise<RoomInfo | null> {
     const room = await getRoom(roomCode);
     if (!room) return null;
 
     const ttl = await redis.ttl(`room:${roomCode}`);
     const onlineUsers = await redis.smembers(`online:${roomCode}`);
-
-    // Get distinct online users (clean up duplicates if any)
     const distinctUsers = Array.from(new Set(onlineUsers as string[]));
-
-    // Get real-time message count from the list length
     const realMsgCount = await redis.llen(`messages:${roomCode}`);
 
     return {
@@ -135,16 +115,13 @@ export async function getRoomInfo(roomCode: string): Promise<RoomInfo | null> {
     };
 }
 
-/**
- * Join a room
- */
 export async function joinRoom(
     roomCode: string,
     userName: string
 ): Promise<{ success: boolean; room?: Room; error?: string; statusCode?: number }> {
-    const roomData = await redis.get<Room>(`room:${roomCode}`);
+    const room = await getRoom(roomCode);
 
-    if (!roomData) {
+    if (!room) {
         return {
             success: false,
             error: 'Room not found or has expired',
@@ -152,12 +129,11 @@ export async function joinRoom(
         };
     }
 
-    const room: Room = roomData;
-
     // Check capacity
     if (room.participants.length >= room.participantsCount) {
-        // Allow re-joining if user is already in list
-        const isAlreadyParticipant = room.participants.some(p => p.toLowerCase() === userName.toLowerCase());
+        const isAlreadyParticipant = room.participants.some(
+            p => p.toLowerCase() === userName.toLowerCase()
+        );
         if (!isAlreadyParticipant) {
             return {
                 success: false,
@@ -167,12 +143,11 @@ export async function joinRoom(
         }
     }
 
-    // Check if username is taken (if new user)
+    // Check if user already exists
     const existingUserIndex = room.participants.findIndex(
         (participant) => participant.toLowerCase() === userName.toLowerCase()
     );
 
-    // If new user, add them. If existing, we just refresh their presence.
     if (existingUserIndex === -1) {
         room.participants.push(userName);
     }
@@ -183,19 +158,14 @@ export async function joinRoom(
         return { success: false, error: 'Room has expired', statusCode: 410 };
     }
 
-    // Update room data
     await redis.setex(`room:${roomCode}`, ttl, JSON.stringify(room));
-
-    // Add to online users
     await redis.sadd(`online:${roomCode}`, userName);
     await redis.expire(`online:${roomCode}`, ttl);
 
     return { success: true, room };
 }
 
-/**
- * Leave a room (Optional: Remove from online list)
- */
+// FIX: Changed template literal to proper parentheses
 export async function leaveRoom(
     roomCode: string,
     userName: string
@@ -213,21 +183,16 @@ export async function leaveRoom(
 // MESSAGE OPERATIONS
 // ============================================
 
-/**
- * Add a message to room
- * FIX: Ensures list creation and expiration
- */
 export async function addMessage(
     roomCode: string,
     userName: string,
     messageText: string
 ): Promise<Message | null> {
-    // Check if room exists first
     const roomTTL = await redis.ttl(`room:${roomCode}`);
     if (roomTTL <= 0) return null;
 
     const message: Message = {
-        id: crypto.randomUUID(),
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         user: userName,
         message: messageText,
         timestamp: new Date().toISOString(),
@@ -235,22 +200,13 @@ export async function addMessage(
 
     const key = `messages:${roomCode}`;
 
-    // Push to head of list (Newest messages at index 0)
     await redis.lpush(key, JSON.stringify(message));
-
-    // Trim to keep only last 100 messages to save memory
     await redis.ltrim(key, 0, 99);
-
-    // IMPORTANT: Set expiry on the message list to match the room
     await redis.expire(key, roomTTL);
-
 
     return message;
 }
 
-/**
- * Get messages from room
- */
 export async function getMessages(
     roomCode: string,
     limit: number = 50
@@ -261,12 +217,13 @@ export async function getMessages(
         limit - 1
     );
 
-    // Parse JSON strings → Message objects
-    const messages: Message[] = messagesRaw.map((val) =>
-        JSON.parse(val) as Message
-    );
+    const messages: Message[] = messagesRaw.map((val) => {
+        if (typeof val === 'string') {
+            return JSON.parse(val);
+        }
+        return val as Message;
+    });
 
-    // Oldest → Newest for UI rendering
     return messages.reverse();
 }
 
@@ -278,6 +235,14 @@ export async function roomExists(roomCode: string): Promise<boolean> {
     return (await redis.exists(`room:${roomCode}`)) === 1;
 }
 
-export async function isUserOnline(roomCode: string, userName: string): Promise<boolean> {
+export async function isUserOnline(
+    roomCode: string,
+    userName: string
+): Promise<boolean> {
     return (await redis.sismember(`online:${roomCode}`, userName)) === 1;
+}
+
+export async function getOnlineUsers(roomCode: string): Promise<string[]> {
+    const users = await redis.smembers(`online:${roomCode}`);
+    return Array.from(new Set(users as string[]));
 }
