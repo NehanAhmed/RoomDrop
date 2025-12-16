@@ -255,15 +255,19 @@ export async function getMessages(
     roomCode: string,
     limit: number = 50
 ): Promise<Message[]> {
-    // Get messages. Since we lpush, index 0 is the newest.
-    // fetching 0 to limit-1 gets the N newest messages.
-    const messagesRaw = await redis.lrange(`messages:${roomCode}`, 0, limit - 1);
+    const messagesRaw = await redis.lrange(
+        `messages:${roomCode}`,
+        0,
+        limit - 1
+    );
 
-    // Parse them
-    const message: Message[] = messagesRaw.map(val => val)
-    // Reverse them so the frontend receives [Oldest, ..., Newest]
-    // This makes rendering easier (append to bottom)
-    return message.reverse();
+    // Parse JSON strings → Message objects
+    const messages: Message[] = messagesRaw.map((val) =>
+        JSON.parse(val) as Message
+    );
+
+    // Oldest → Newest for UI rendering
+    return messages.reverse();
 }
 
 // ============================================
