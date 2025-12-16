@@ -82,6 +82,15 @@ const Page = () => {
       setLoading(false)
       setSuccess(true)
       toast.success("Room Created Successfully!")
+      
+      // Save user session
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('chat_room_session', JSON.stringify({
+          userName: name.trim(),
+          roomCode: responseData.code,
+          joinedAt: new Date().toISOString(),
+        }))
+      }
     } catch (error: any) {
       console.error('Error creating room:', error)
       toast.error(error?.message || "Failed to create room")
