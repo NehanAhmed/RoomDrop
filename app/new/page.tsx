@@ -82,6 +82,15 @@ const Page = () => {
       setLoading(false)
       setSuccess(true)
       toast.success("Room Created Successfully!")
+      
+      // Save user session
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('chat_room_session', JSON.stringify({
+          userName: name.trim(),
+          roomCode: responseData.code,
+          joinedAt: new Date().toISOString(),
+        }))
+      }
     } catch (error: any) {
       console.error('Error creating room:', error)
       toast.error(error?.message || "Failed to create room")
@@ -109,7 +118,6 @@ const Page = () => {
 
   return (
     <main className="w-full min-h-screen font-mono flex justify-center items-center">
-      
       {/* Success Dialog */}
       <Dialog open={success} onOpenChange={handleCloseDialog}>
         <DialogContent>
@@ -123,7 +131,6 @@ const Page = () => {
             <div className='w-full flex justify-between items-center gap-3 p-3 bg-muted rounded-lg'>
               <p className='text-lg font-bold font-mono'>{data?.code}</p>
               <CopyButton 
-                variant='outline'
                 textToCopy={data?.code || ''} 
                 onCopySuccess={() => toast.success('Room code copied!')}
                 className='p-2 border rounded hover:bg-gray-100'

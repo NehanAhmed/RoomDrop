@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
         );
 
         // Initialize empty messages list
-        await redis.setex(`messages:${roomCode}`, expiresInSeconds, '[]');
+        // await redis.setex(`messages:${roomCode}`, expiresInSeconds, '[]');
 
         // Add creator to online users
         await redis.sadd(`online:${roomCode}`, name.trim());

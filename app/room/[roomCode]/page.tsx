@@ -1,11 +1,11 @@
 import { AppSidebar } from '@/components/app-sidebar'
-import MessageSection from '@/components/Message/MessageSection'
+import ChatInterface from '@/components/Message/ChatInterface'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { getRoomInfo, roomExists, RoomInfo } from '@/lib/RoomService'
+import { getRoomInfo, roomExists } from '@/lib/RoomService'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import React from 'react'
-import { toast } from 'sonner'
 
 const Page = async ({ params }: { params: Promise<{ roomCode: string }> }) => {
     const { roomCode } = await params;
@@ -17,7 +17,8 @@ const Page = async ({ params }: { params: Promise<{ roomCode: string }> }) => {
 
     const roomData = await getRoomInfo(roomCode)
 
-
+    // Note: currentUser will be determined client-side from localStorage
+    // Server component just provides the room data
 
     return (
         <SidebarProvider
@@ -30,17 +31,10 @@ const Page = async ({ params }: { params: Promise<{ roomCode: string }> }) => {
 
             <main className="w-full h-screen flex flex-col">
                 <SiteHeader />
-
-                {/* Content Area */}
-                <div className="flex-1 flex flex-col">
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4">
-                        {/* messages here */}
-                    </div>
-
-                    {/* Input pinned to bottom */}
-                    <MessageSection />
-                </div>
+                
+                {/* Chat Interface - handles messages and input */}
+                {/* currentUser prop removed - will be handled inside component */}
+                <ChatInterface roomCode={roomCode} />
             </main>
         </SidebarProvider>
     )

@@ -74,6 +74,15 @@ const Page = () => {
             setLoading(false)
             toast.success("Joined Room Successfully!")
             
+            // Save user session
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('chat_room_session', JSON.stringify({
+                    userName: name.trim(),
+                    roomCode: formattedCode,
+                    joinedAt: new Date().toISOString(),
+                }))
+            }
+            
             // Redirect to room
             setTimeout(() => {
                 router.push(`/room/${formattedCode}`)
