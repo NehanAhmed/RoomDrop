@@ -244,13 +244,6 @@ export async function addMessage(
     // IMPORTANT: Set expiry on the message list to match the room
     await redis.expire(key, roomTTL);
 
-    // Optional: Update message count in room object metadata
-    // (This is redundant if using getRoomInfo, but keeps the object consistent)
-    const roomData = await redis.get<Room>(`room:${roomCode}`);
-    if (roomData) {
-        roomData.messageCount = (roomData.messageCount || 0) + 1;
-        await redis.setex(`room:${roomCode}`, roomTTL, JSON.stringify(roomData));
-    }
 
     return message;
 }
