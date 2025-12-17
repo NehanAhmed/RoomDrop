@@ -15,41 +15,46 @@ import {
 import Link from "next/link"
 import { Button } from "./ui/button"
 import { CopyButton } from "./CopyButton"
-import { Room, RoomInfo } from "@/lib/RoomService"
+import { leaveRoom, Room, RoomInfo } from "@/lib/RoomService"
 import { toast } from "sonner"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
-// Menu items.
-const items = [
-    {
-        title: "Home",
-        url: "#",
-        icon: IconHome,
-    },
-    {
-        title: "Inbox",
-        url: "#",
-        icon: IconInbox,
-    },
-    {
-        title: "Calendar",
-        url: "#",
-        icon: IconCalendar,
-    },
-    {
-        title: "Search",
-        url: "#",
-        icon: IconSearch,
-    },
-    {
-        title: "Settings",
-        url: "#",
-        icon: IconSettings,
-    },
-]
+
+
+interface UserSession {
+    userName: string
+    roomCode: string
+    joinedAt: string
+}
 
 export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
     const onlineSet = new Set(roomData?.onlineUsers)
+    const [currentUser, setcurrentUser] = useState('')
+    const router = useRouter()
+    useEffect(() => {
+        const getUserSession = (): UserSession | null => {
+            try {
+                const stored = localStorage.getItem('chat_room_session')
+                if (stored) {
+                    return JSON.parse(stored) as UserSession
+                }
+                return null
+            } catch (error) {
+                console.error('Error reading user session:', error)
+                return null
+            }
+        }
+        const session = getUserSession()
+        setcurrentUser(session?.userName)
 
+    }, [])
+    const leaveRoomFn = async () => {
+        const response = await leaveRoom(roomData?.code, currentUser)
+        if (response.success) {
+            router.push('/')
+        }
+    }
     return (
         <Sidebar variant="floating" collapsible="offExamples">
             <SidebarHeader>
@@ -71,7 +76,7 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                             </div>
                         </SidebarMenu>
                         <SidebarMenu>
-                            <Button variant={'destructive'} className={'py-5 px-4 text-start flex items-center justify-start gap-2 '}><IconDoorExit /> Leave Chat</Button>
+                            <Button onClick={leaveRoomFn} variant={'destructive'} className={'py-5 px-4 text-start flex items-center justify-start gap-2 '}><IconDoorExit /> Leave Chat</Button>
 
                         </SidebarMenu>
                     </SidebarGroupContent>
