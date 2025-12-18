@@ -36,21 +36,19 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
         const getUserSession = (): UserSession | null => {
             try {
                 const stored = localStorage.getItem('chat_room_session')
-                if (stored) {
-                    return JSON.parse(stored) as UserSession
-                }
-                return null
-            } catch (error) {
-                console.error('Error reading user session:', error)
+                return stored ? (JSON.parse(stored) as UserSession) : null
+            } catch {
                 return null
             }
         }
-        const session = getUserSession()
-        setcurrentUser(session?.userName)
 
+        const session = getUserSession()
+        setcurrentUser(session?.userName ?? '')
     }, [])
     const leaveRoomFn = async () => {
-        const response = await leaveRoom(roomData?.code, currentUser)
+        if (!roomData?.code || !currentUser) return
+
+        const response = await leaveRoom(roomData.code, currentUser)
         if (response.success) {
             router.push('/')
         }
