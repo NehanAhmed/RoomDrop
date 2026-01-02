@@ -6,6 +6,7 @@ import { IconSend, IconLoader } from '@tabler/icons-react'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { pusherClient } from '@/lib/pusher' // Import the pusher client
 
 interface Message {
   id: string
@@ -32,9 +33,10 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const hasLoadedRef = useRef(false)
   const router = useRouter()
 
-  // Get current user from localStorage
+  // 1. Initial Setup: Load Session and Fetch History
   useEffect(() => {
     const getUserSession = (): UserSession | null => {
       try {
@@ -52,7 +54,6 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     const session = getUserSession()
 
     if (!session || session.roomCode !== roomCode) {
-      // User hasn't joined this room, redirect to join page
       toast.error('Please join the room first')
       router.push(`/join`)
       return
@@ -61,10 +62,31 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     setCurrentUser(session.userName)
     setLoading(false)
 
-    // Load existing messages
+    // Load existing messages from Redis
     fetchMessages()
   }, [roomCode, router])
-  const hasLoadedRef = useRef(false)
+
+  // 2. Real-time Subscription: Listen for Pusher events
+  useEffect(() => {
+    // Subscribe to the channel specific to this room
+    const channelName = `chat-${roomCode}`
+    const channel = pusherClient.subscribe(channelName)
+
+    // Bind to the 'incoming-message' event triggered by our API
+    channel.bind('incoming-message', (newMessage: Message) => {
+      setMessages((prev) => {
+        // Deduplication: If the message ID already exists (from optimistic update), ignore it
+        if (prev.some((m) => m.id === newMessage.id)) return prev
+        return [...prev, newMessage]
+      })
+    })
+
+    // Cleanup: Unsubscribe when component unmounts or room changes
+    return () => {
+      pusherClient.unsubscribe(channelName)
+      channel.unbind_all()
+    }
+  }, [roomCode])
 
   const fetchMessages = async () => {
     try {
@@ -80,7 +102,6 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     }
   }
 
-  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -95,47 +116,40 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     if (!inputMessage.trim() || sending || !currentUser) return
 
     setSending(true)
-    const tempId = `temp-${Date.now()}`
+    const messageText = inputMessage.trim()
+    const tempId = `temp-${Date.now()}` // Temporary ID for Optimistic UI
 
     try {
-      // Add message to local state immediately (optimistic update)
-      const newMessage: Message = {
-        id: tempId,
-        user: currentUser,
-        message: inputMessage.trim(),
-        timestamp: new Date().toISOString(),
-      }
-
-      setMessages(prev => [...prev, newMessage])
-      setInputMessage('')
-
-      // Send to server
+      // Step A: Optimistic Update (Add message to UI instantly)
+      
+      // Step B: Send to API
       const response = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           roomCode,
           userName: currentUser,
-          message: inputMessage.trim(),
+          message: messageText,
         }),
       })
 
       if (!response.ok) {
-        // Remove optimistic message if failed
-        setMessages(prev => prev.filter(m => m.id !== tempId))
+        // Rollback on failure
+        setMessages((prev) => prev.filter((m) => m.id !== tempId))
         toast.error('Failed to send message')
       } else {
-        // Replace temp message with server response
         const data = await response.json()
         if (data.message) {
-          setMessages(prev =>
-            prev.map(m => m.id === tempId ? data.message : m)
+          // Step C: Replace the temp message with the actual one from server (has real ID)
+          setMessages((prev) =>
+            prev.map((m) => (m.id === tempId ? data.message : m))
           )
+          setInputMessage('')
         }
       }
     } catch (error) {
       console.error('Failed to send message:', error)
-      setMessages(prev => prev.filter(m => m.id !== tempId))
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
       toast.error('Failed to send message')
     } finally {
       setSending(false)
@@ -143,22 +157,25 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  if (e.key === 'Enter' && e.shiftKey) return
-}
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage(e as any)
+    }
+  }
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     })
   }
 
   const getInitials = (name: string) => {
     return name
       .split(' ')
-      .map(n => n[0])
+      .map((n) => n[0])
       .join('')
       .toUpperCase()
       .slice(0, 2)
@@ -166,14 +183,8 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
   const getAvatarColor = (name: string) => {
     const colors = [
-      'bg-blue-500',
-      'bg-green-500',
-      'bg-purple-500',
-      'bg-pink-500',
-      'bg-yellow-500',
-      'bg-indigo-500',
-      'bg-red-500',
-      'bg-teal-500',
+      'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500',
+      'bg-yellow-500', 'bg-indigo-500', 'bg-red-500', 'bg-teal-500',
     ]
     const index = name.charCodeAt(0) % colors.length
     return colors[index]
@@ -189,7 +200,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Messages Area - Scrollable */}
+      {/* Messages Area */}
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto scroll-smooth"
@@ -215,14 +226,15 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
               return (
                 <div
                   key={msg.id}
-                  className={`flex items-start gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''
-                    }`}
+                  className={`flex items-start gap-3 ${
+                    isCurrentUser ? 'flex-row-reverse' : ''
+                  }`}
                 >
-                  {/* Avatar */}
                   {showAvatar ? (
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 ${isCurrentUser ? 'bg-primary' : getAvatarColor(msg.user)
-                        }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 ${
+                        isCurrentUser ? 'bg-primary' : getAvatarColor(msg.user)
+                      }`}
                     >
                       {getInitials(msg.user)}
                     </div>
@@ -230,7 +242,6 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                     <div className="w-8 shrink-0" />
                   )}
 
-                  {/* Message Content */}
                   <div className={`flex-1 max-w-[70%] ${isCurrentUser ? 'items-end' : 'items-start'} flex flex-col`}>
                     {showAvatar && (
                       <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
@@ -243,10 +254,11 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                       </div>
                     )}
                     <div
-                      className={`rounded-lg px-4 py-2 ${isCurrentUser
-                        ? 'bg-primary text-primary-foreground rounded-tr-none'
-                        : 'bg-muted text-foreground rounded-tl-none'
-                        }`}
+                      className={`rounded-lg px-4 py-2 ${
+                        isCurrentUser
+                          ? 'bg-primary text-primary-foreground rounded-tr-none'
+                          : 'bg-muted text-foreground rounded-tl-none'
+                      }`}
                     >
                       <p className="text-sm whitespace-pre-wrap break-words">
                         {msg.message}
@@ -261,7 +273,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
         </div>
       </div>
 
-      {/* Input Area - Fixed at Bottom */}
+      {/* Input Area */}
       <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-4xl mx-auto p-4">
           <form onSubmit={handleSendMessage} className="flex items-end gap-2">

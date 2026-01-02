@@ -1,4 +1,5 @@
 // app/api/messages/send/route.ts
+import { pusherServer } from '@/lib/pusher';
 import { addMessage } from '@/lib/RoomService';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
+    await pusherServer.trigger(`chat-${roomCode}`, 'incoming-message', newMessage);
 
     return NextResponse.json({
       success: true,
