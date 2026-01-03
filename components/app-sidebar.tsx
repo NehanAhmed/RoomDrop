@@ -19,6 +19,7 @@ import { leaveRoom, Room, RoomInfo } from "@/lib/RoomService"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import { SettingsModal } from "./SettingsModal"
 
 
 
@@ -31,6 +32,8 @@ interface UserSession {
 export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
     const onlineSet = new Set(roomData?.onlineUsers)
     const [currentUser, setcurrentUser] = useState('')
+    const [settingsOpen, setSettingsOpen] = useState(false)
+
     const router = useRouter()
     useEffect(() => {
         const getUserSession = (): UserSession | null => {
@@ -77,6 +80,16 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                             <Button onClick={leaveRoomFn} variant={'destructive'} className={'py-5 px-4 text-start flex items-center justify-start gap-2 '}><IconDoorExit /> Leave Chat</Button>
 
                         </SidebarMenu>
+                        <SidebarMenu>
+
+                            <Button onClick={() => setSettingsOpen(true)}
+                                className={'py-5 px-4 text-start flex items-center justify-start gap-2 '} variant={'outline'}><IconSettings /> Settings</Button>
+                            <SettingsModal
+                                open={settingsOpen}
+                                onOpenChange={setSettingsOpen}
+                            />
+                        </SidebarMenu>
+
                     </SidebarGroupContent>
                 </SidebarContent>
             </SidebarHeader>

@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { IconLoader } from '@tabler/icons-react'
+import { useQRCode } from 'next-qrcode'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
@@ -56,11 +57,14 @@ const Page = () => {
         return
       }
 
+
       const formData = {
         name: name.trim(),
         duration: durationNum,
         participantsCount: participantsNum
       }
+
+
 
       const response = await fetch(`${BASE_URL}/api/create`, {
         method: 'POST',
@@ -82,7 +86,7 @@ const Page = () => {
       setLoading(false)
       setSuccess(true)
       toast.success("Room Created Successfully!")
-      
+
       // Save user session
       if (typeof window !== 'undefined') {
         localStorage.setItem('chat_room_session', JSON.stringify({
@@ -115,7 +119,7 @@ const Page = () => {
       return isoDate
     }
   }
-
+  const { Canvas } = useQRCode()
   return (
     <main className="w-full min-h-screen font-mono flex justify-center items-center">
       {/* Success Dialog */}
@@ -128,10 +132,25 @@ const Page = () => {
             </DialogDescription>
           </DialogHeader>
           <div className='p-1 flex flex-col items-center justify-center gap-5'>
+            <div>
+              <Canvas
+                text={`https://room-drop.vercel.app/join?by=qrcode&code=${data?.code}`}
+                options={{
+                  errorCorrectionLevel: 'M',
+                  margin: 3,
+                  scale: 4,
+                  width: 200,
+                  color: {
+                    dark: '#010599FF',
+                    light: '#FFBF60FF',
+                  },
+                }}
+              />
+            </div>
             <div className='w-full flex justify-between items-center gap-3 p-3 bg-muted rounded-lg'>
               <p className='text-lg font-bold font-mono'>{data?.code}</p>
-              <CopyButton 
-                textToCopy={data?.code || ''} 
+              <CopyButton
+                textToCopy={data?.code || ''}
                 onCopySuccess={() => toast.success('Room code copied!')}
                 className='p-2 border rounded hover:bg-gray-100'
                 copiedClassName='p-2 border rounded bg-green-500 text-white'
@@ -162,13 +181,13 @@ const Page = () => {
           <form className='flex flex-col gap-5 w-full' onSubmit={handleSubmit}>
             <div className='space-y-2'>
               <Label htmlFor='name'>Your Name*</Label>
-              <Input 
+              <Input
                 id='name'
-                disabled={loading} 
-                className='py-5 border border-primary' 
-                placeholder='e.g: Nehan' 
-                type='text' 
-                value={name} 
+                disabled={loading}
+                className='py-5 border border-primary'
+                placeholder='e.g: Nehan'
+                type='text'
+                value={name}
                 onChange={(e) => setName(e.target.value)}
                 maxLength={50}
               />
@@ -176,15 +195,15 @@ const Page = () => {
 
             <div className='space-y-2'>
               <Label htmlFor='duration'>Room Duration* (in Minutes)</Label>
-              <Input 
+              <Input
                 id='duration'
-                disabled={loading} 
-                className='py-5 border border-primary' 
-                placeholder='e.g: 30' 
-                type='number' 
+                disabled={loading}
+                className='py-5 border border-primary'
+                placeholder='e.g: 30'
+                type='number'
                 min='1'
                 max='1440'
-                value={duration} 
+                value={duration}
                 onChange={(e) => setDuration(e.target.value)}
               />
               <p className='text-xs text-muted-foreground'>Max: 1440 minutes (24 hours)</p>
@@ -192,24 +211,24 @@ const Page = () => {
 
             <div className='space-y-2'>
               <Label htmlFor='participants'>Max Participants Count</Label>
-              <Input 
+              <Input
                 id='participants'
-                disabled={loading} 
-                className='py-5 border border-primary' 
-                placeholder='e.g: 5' 
-                type='number' 
+                disabled={loading}
+                className='py-5 border border-primary'
+                placeholder='e.g: 5'
+                type='number'
                 min='2'
                 max='50'
-                value={participantsCount} 
+                value={participantsCount}
                 onChange={(e) => setParticipantsCount(e.target.value)}
               />
               <p className='text-xs text-muted-foreground'>Default: 5 participants</p>
             </div>
 
             <div className='w-full'>
-              <Button 
+              <Button
                 type='submit'
-                className='px-5 py-5 w-full' 
+                className='px-5 py-5 w-full'
                 disabled={loading}
               >
                 {loading ? (
