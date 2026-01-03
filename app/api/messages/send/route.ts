@@ -1,6 +1,4 @@
 // app/api/messages/send/route.ts
-import { pusherServer } from '@/lib/pusher';
-import { addMessage } from '@/lib/RoomService';
 import { NextRequest, NextResponse } from 'next/server';
 
 interface SendMessageRequest {
@@ -9,10 +7,16 @@ interface SendMessageRequest {
   message: string;
 }
 
-export const dynamic = 'force-dynamic'; 
-// Hello
+// Force dynamic rendering and disable static optimization
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function POST(req: NextRequest) {
   try {
+    // Lazy load dependencies to avoid build-time evaluation
+    const { pusherServer } = await import('@/lib/pusher');
+    const { addMessage } = await import('@/lib/RoomService');
+
     const body: SendMessageRequest = await req.json();
     const { roomCode, userName, message } = body;
 
@@ -47,6 +51,7 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
+
     await pusherServer.trigger(`chat-${roomCode}`, 'incoming-message', newMessage);
 
     return NextResponse.json({
