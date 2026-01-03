@@ -10,7 +10,7 @@ interface SendMessageRequest {
 }
 
 export const dynamic = 'force-dynamic'; 
-
+// Hello
 export async function POST(req: NextRequest) {
   try {
     const body: SendMessageRequest = await req.json();
