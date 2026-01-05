@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/accordion"
 import { Label } from "@/components/ui/label"
 import { ThemeToggle } from "./ThemeToggle"
+import Link from "next/link"
 
 interface SettingsModalProps {
   open: boolean
@@ -44,7 +45,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <p className="text-xs text-muted-foreground">
                     Customize how the app looks and feels
                   </p>
-                  
+
                   <div className="flex items-center justify-between py-2">
                     <div className="space-y-0.5">
                       <Label>Theme</Label>
@@ -62,7 +63,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               </AccordionContent>
             </AccordionItem>
 
-            
+
             {/* Privacy Section */}
             <AccordionItem value="privacy">
               <AccordionTrigger className="text-sm font-medium">
@@ -73,13 +74,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <p className="text-xs text-muted-foreground">
                     Control your privacy and security settings
                   </p>
-                  
+
                   <div className="flex items-center justify-between py-2">
                     <div className="space-y-0.5">
-                      <Label className="text-muted-foreground">Clear Session Data</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Coming soon
-                      </p>
+                      <Link href={'/privacy'}>
+                        Privacy & Policy's
+                      </Link>
                     </div>
                   </div>
                 </div>
@@ -96,11 +96,17 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Version</span>
-                      <span className="text-sm font-mono">1.0.0</span>
+                      <span className="text-sm font-mono">1.0.2</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground">Build</span>
                       <span className="text-sm font-mono">2025.01.03</span>
+
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Creator</span>
+                      <span className="text-sm font-mono "><Link className="hover:underline" target="_blank" href={'https://github.com/NehanAhmed'} >Nehan Ahmed</Link></span>
+
                     </div>
                   </div>
                 </div>

@@ -84,11 +84,11 @@ export function CopyButton({
   // Variant styles
   const variantStyles = {
     default: cn(
-      'bg-primary text-primary-foreground hover:bg-primary/90',
+      'bg-secondary text-primary-foreground hover:bg-secondary/90',
       isCopied && 'bg-green-600 hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-700'
     ),
     outline: cn(
-      'border border-input bg-background hover:bg-background/80',
+      'border border-input bg-secondary ',
       isCopied && 'border-green-600 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-400 dark:border-green-700'
     ),
     ghost: cn(

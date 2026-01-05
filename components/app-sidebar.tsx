@@ -1,5 +1,5 @@
 'use client'
-import { IconCalendar, IconDoorExit, IconHome, IconInbox, IconSearch, IconSettings, IconUser } from "@tabler/icons-react"
+import { IconArrowLeft, IconCalendar, IconDoorExit, IconHome, IconInbox, IconSearch, IconSettings, IconUser } from "@tabler/icons-react"
 
 import {
     Sidebar,
@@ -60,6 +60,11 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
         <Sidebar variant="floating" collapsible="offExamples">
             <SidebarHeader>
                 <SidebarContent>
+                    <SidebarMenu>
+                        <Link href={'/'} className="my-3">
+                        <Button className={'gap-2 '} variant={'outline'}><IconArrowLeft />Back to Home </Button>
+                        </Link>
+                    </SidebarMenu>
                     <SidebarGroup>
                         <SidebarGroupLabel>Actions</SidebarGroupLabel>
                     </SidebarGroup>

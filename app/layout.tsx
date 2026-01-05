@@ -45,7 +45,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Suspense fallback={<IconLoader2 className="animate-spin" />}>
+          <Suspense fallback={<IconLoader2 className="animate-spin m-auto" />}>
 
           {children}
           </Suspense>

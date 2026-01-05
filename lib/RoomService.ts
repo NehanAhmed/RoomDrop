@@ -1,5 +1,8 @@
 // lib/RoomService.ts
 import { redis } from '@/lib/redis';
+import { db } from '@/lib/db';
+import { rooms, participants, messages } from '@/lib/db/schema';
+import { eq, and, desc } from 'drizzle-orm';
 
 // ============================================
 // TYPES & INTERFACES
@@ -29,7 +32,7 @@ export interface RoomInfo extends Room {
 }
 
 // ============================================
-// ROOM OPERATIONS
+// HELPER FUNCTIONS
 // ============================================
 
 function generateRoomCode(): string {
@@ -41,6 +44,10 @@ function generateRoomCode(): string {
     return code.slice(0, 3) + '-' + code.slice(3);
 }
 
+// ============================================
+// ROOM OPERATIONS
+// ============================================
+
 export async function createRoom(
     userName: string,
     duration: number,
@@ -50,9 +57,13 @@ export async function createRoom(
     let attempts = 0;
     const maxAttempts = 10;
 
+    // Check uniqueness in both Redis and DB
     while (attempts < maxAttempts) {
-        const exists = await redis.exists(`room:${roomCode}`);
-        if (!exists) break;
+        const redisExists = await redis.exists(`room:${roomCode}`);
+        const dbExists = await db.select().from(rooms).where(eq(rooms.code, roomCode)).limit(1);
+        
+        if (!redisExists && dbExists.length === 0) break;
+        
         roomCode = generateRoomCode();
         attempts++;
     }
@@ -75,6 +86,7 @@ export async function createRoom(
         messageCount: 0,
     };
 
+    // Store in Redis for fast access
     await redis.setex(
         `room:${roomCode}`,
         expiresInSeconds,
@@ -84,18 +96,82 @@ export async function createRoom(
     await redis.sadd(`online:${roomCode}`, userName);
     await redis.expire(`online:${roomCode}`, expiresInSeconds);
 
+    // Store in DB for persistence
+    try {
+        await db.insert(rooms).values({
+            code: roomCode,
+            creator: userName,
+            duration,
+            participantsCount,
+            expiresAt,
+            messageCount: 0,
+        });
+
+        await db.insert(participants).values({
+            roomCode,
+            userName,
+            isOnline: true,
+        });
+    } catch (error) {
+        console.error('Error creating room in DB:', error);
+        // Redis is primary, so we continue even if DB fails
+    }
+
     return { roomCode, expiresAt };
 }
 
 export async function getRoom(roomCode: string): Promise<Room | null> {
+    // Try Redis first (faster)
     const roomData = await redis.get(`room:${roomCode}`);
-    if (!roomData) return null;
     
-    // Parse if string, otherwise assume it's already parsed
-    if (typeof roomData === 'string') {
-        return JSON.parse(roomData);
+    if (roomData) {
+        if (typeof roomData === 'string') {
+            return JSON.parse(roomData);
+        }
+        return roomData as Room;
     }
-    return roomData as Room;
+
+    // Fallback to DB if not in Redis
+    try {
+        const dbRoom = await db.select().from(rooms).where(eq(rooms.code, roomCode)).limit(1);
+        
+        if (dbRoom.length === 0) return null;
+
+        const room = dbRoom[0];
+        
+        // Check if expired
+        if (new Date(room.expiresAt) < new Date()) {
+            return null;
+        }
+
+        // Get participants
+        const dbParticipants = await db
+            .select()
+            .from(participants)
+            .where(eq(participants.roomCode, roomCode));
+
+        const roomObject: Room = {
+            code: room.code,
+            creator: room.creator,
+            participants: dbParticipants.map(p => p.userName),
+            createdAt: room.createdAt.toISOString(),
+            expiresAt: room.expiresAt.toISOString(),
+            duration: room.duration,
+            participantsCount: room.participantsCount,
+            messageCount: room.messageCount,
+        };
+
+        // Re-populate Redis cache
+        const ttl = Math.floor((new Date(room.expiresAt).getTime() - Date.now()) / 1000);
+        if (ttl > 0) {
+            await redis.setex(`room:${roomCode}`, ttl, JSON.stringify(roomObject));
+        }
+
+        return roomObject;
+    } catch (error) {
+        console.error('Error getting room from DB:', error);
+        return null;
+    }
 }
 
 export async function getRoomInfo(roomCode: string): Promise<RoomInfo | null> {
@@ -105,11 +181,23 @@ export async function getRoomInfo(roomCode: string): Promise<RoomInfo | null> {
     const ttl = await redis.ttl(`room:${roomCode}`);
     const onlineUsers = await redis.smembers(`online:${roomCode}`);
     const distinctUsers = Array.from(new Set(onlineUsers as string[]));
-    const realMsgCount = await redis.llen(`messages:${roomCode}`);
+    
+    // Get actual message count from DB
+    let realMsgCount = 0;
+    try {
+        const result = await db
+            .select()
+            .from(messages)
+            .where(eq(messages.roomCode, roomCode));
+        realMsgCount = result.length;
+    } catch (error) {
+        // Fallback to Redis
+        realMsgCount = await redis.llen(`messages:${roomCode}`);
+    }
 
     return {
         ...room,
-        remainingSeconds: ttl,
+        remainingSeconds: ttl > 0 ? ttl : 0,
         onlineUsers: distinctUsers,
         messageCount: realMsgCount,
     };
@@ -158,20 +246,73 @@ export async function joinRoom(
         return { success: false, error: 'Room has expired', statusCode: 410 };
     }
 
+    // Update Redis
     await redis.setex(`room:${roomCode}`, ttl, JSON.stringify(room));
     await redis.sadd(`online:${roomCode}`, userName);
     await redis.expire(`online:${roomCode}`, ttl);
 
+    // Update DB
+    try {
+        const existingParticipant = await db
+            .select()
+            .from(participants)
+            .where(
+                and(
+                    eq(participants.roomCode, roomCode),
+                    eq(participants.userName, userName)
+                )
+            )
+            .limit(1);
+
+        if (existingParticipant.length === 0) {
+            await db.insert(participants).values({
+                roomCode,
+                userName,
+                isOnline: true,
+            });
+        } else {
+            await db
+                .update(participants)
+                .set({ 
+                    isOnline: true, 
+                    lastSeenAt: new Date() 
+                })
+                .where(
+                    and(
+                        eq(participants.roomCode, roomCode),
+                        eq(participants.userName, userName)
+                    )
+                );
+        }
+    } catch (error) {
+        console.error('Error updating participant in DB:', error);
+    }
+
     return { success: true, room };
 }
 
-// FIX: Changed template literal to proper parentheses
 export async function leaveRoom(
     roomCode: string,
     userName: string
 ): Promise<{ success: boolean }> {
     try {
+        // Update Redis
         await redis.srem(`online:${roomCode}`, userName);
+
+        // Update DB
+        await db
+            .update(participants)
+            .set({ 
+                isOnline: false, 
+                lastSeenAt: new Date() 
+            })
+            .where(
+                and(
+                    eq(participants.roomCode, roomCode),
+                    eq(participants.userName, userName)
+                )
+            );
+
         return { success: true };
     } catch (error) {
         console.error('Error leaving room:', error);
@@ -191,18 +332,42 @@ export async function addMessage(
     const roomTTL = await redis.ttl(`room:${roomCode}`);
     if (roomTTL <= 0) return null;
 
+    const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const timestamp = new Date().toISOString();
+
     const message: Message = {
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: messageId,
         user: userName,
         message: messageText,
-        timestamp: new Date().toISOString(),
+        timestamp,
     };
 
+    // Store in Redis
     const key = `messages:${roomCode}`;
-
     await redis.lpush(key, JSON.stringify(message));
     await redis.ltrim(key, 0, 99);
     await redis.expire(key, roomTTL);
+
+    // Store in DB for persistence
+    try {
+        await db.insert(messages).values({
+            roomCode,
+            userName,
+            message: messageText,
+            timestamp: new Date(timestamp),
+        });
+
+        // Update message count in room
+        await db
+            .update(rooms)
+            .set({ 
+                messageCount: db.$count(messages, eq(messages.roomCode, roomCode))
+            })
+            .where(eq(rooms.code, roomCode));
+    } catch (error) {
+        console.error('Error saving message to DB:', error);
+        // Continue even if DB fails, Redis has the message
+    }
 
     return message;
 }
@@ -211,20 +376,56 @@ export async function getMessages(
     roomCode: string,
     limit: number = 50
 ): Promise<Message[]> {
+    // Try Redis first
     const messagesRaw = await redis.lrange(
         `messages:${roomCode}`,
         0,
         limit - 1
     );
 
-    const messages: Message[] = messagesRaw.map((val) => {
-        if (typeof val === 'string') {
-            return JSON.parse(val);
-        }
-        return val as Message;
-    });
+    if (messagesRaw.length > 0) {
+        const redisMessages: Message[] = messagesRaw.map((val) => {
+            if (typeof val === 'string') {
+                return JSON.parse(val);
+            }
+            return val as Message;
+        });
+        return redisMessages.reverse();
+    }
 
-    return messages.reverse();
+    // Fallback to DB
+    try {
+        const dbMessages = await db
+            .select()
+            .from(messages)
+            .where(eq(messages.roomCode, roomCode))
+            .orderBy(desc(messages.timestamp))
+            .limit(limit);
+
+        const formattedMessages: Message[] = dbMessages.map(msg => ({
+            id: msg.id,
+            user: msg.userName,
+            message: msg.message,
+            timestamp: msg.timestamp.toISOString(),
+        }));
+
+        // Re-populate Redis cache
+        if (formattedMessages.length > 0) {
+            const ttl = await redis.ttl(`room:${roomCode}`);
+            if (ttl > 0) {
+                const key = `messages:${roomCode}`;
+                for (const msg of formattedMessages.reverse()) {
+                    await redis.lpush(key, JSON.stringify(msg));
+                }
+                await redis.expire(key, ttl);
+            }
+        }
+
+        return formattedMessages.reverse();
+    } catch (error) {
+        console.error('Error getting messages from DB:', error);
+        return [];
+    }
 }
 
 // ============================================
@@ -232,7 +433,20 @@ export async function getMessages(
 // ============================================
 
 export async function roomExists(roomCode: string): Promise<boolean> {
-    return (await redis.exists(`room:${roomCode}`)) === 1;
+    const redisExists = (await redis.exists(`room:${roomCode}`)) === 1;
+    if (redisExists) return true;
+
+    try {
+        const dbRoom = await db.select().from(rooms).where(eq(rooms.code, roomCode)).limit(1);
+        if (dbRoom.length > 0) {
+            // Check if expired
+            return new Date(dbRoom[0].expiresAt) > new Date();
+        }
+    } catch (error) {
+        console.error('Error checking room existence in DB:', error);
+    }
+
+    return false;
 }
 
 export async function isUserOnline(
