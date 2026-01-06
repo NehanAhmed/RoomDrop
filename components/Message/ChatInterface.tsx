@@ -2,12 +2,13 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { IconSend, IconLoader } from '@tabler/icons-react'
+import { IconSend, IconLoader, IconPlus } from '@tabler/icons-react'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { pusherClient } from '@/lib/pusher' // Import the pusher client
-
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
+import { motion } from 'motion/react'
 interface Message {
   id: string
   user: string
@@ -35,7 +36,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const hasLoadedRef = useRef(false)
   const router = useRouter()
-
+  const PlusIconMotion = motion(IconPlus)
   // 1. Initial Setup: Load Session and Fetch History
   useEffect(() => {
     const getUserSession = (): UserSession | null => {
@@ -121,7 +122,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
     try {
       // Step A: Optimistic Update (Add message to UI instantly)
-      
+
       // Step B: Send to API
       const response = await fetch('/api/messages/send', {
         method: 'POST',
@@ -226,15 +227,13 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
               return (
                 <div
                   key={msg.id}
-                  className={`flex items-start gap-3 ${
-                    isCurrentUser ? 'flex-row-reverse' : ''
-                  }`}
+                  className={`flex items-start gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''
+                    }`}
                 >
                   {showAvatar ? (
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 ${
-                        isCurrentUser ? 'bg-primary' : getAvatarColor(msg.user)
-                      }`}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 ${isCurrentUser ? 'bg-primary' : getAvatarColor(msg.user)
+                        }`}
                     >
                       {getInitials(msg.user)}
                     </div>
@@ -254,11 +253,10 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                       </div>
                     )}
                     <div
-                      className={`rounded-lg px-4 py-2 ${
-                        isCurrentUser
-                          ? 'bg-primary text-primary-foreground rounded-tr-none'
-                          : 'bg-muted text-foreground rounded-tl-none'
-                      }`}
+                      className={`rounded-lg px-4 py-2 ${isCurrentUser
+                        ? 'bg-primary text-primary-foreground rounded-tr-none'
+                        : 'bg-muted text-foreground rounded-tl-none'
+                        }`}
                     >
                       <p className="text-sm whitespace-pre-wrap break-words">
                         {msg.message}
@@ -277,7 +275,21 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
       <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-4xl mx-auto p-4">
           <form onSubmit={handleSendMessage} className="flex items-end gap-2">
-            <div className="flex-1">
+            <div className="flex gap-2 flex-1">
+              <Popover>
+                <PopoverTrigger>
+                  <motion.span whileHover={'hovered'} initial={'initial'} className={'min-h-11 w-10 border-border dark:bg-input/20 dark:bg-input/30 hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground  inline-flex items-center justify-center shrink-0 whitespace-nowrap select-none rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium outline-none transition-all focus-visible:border-ring focus-visible:ring-[2px] focus-visible:ring-ring/30 aria-invalid:border-destructive aria-invalid:ring-[2px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:opacity-50 group/button [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:pointer-events-none'}><PlusIconMotion variants={{
+                    initial: { rotate: '0deg' },
+                    hovered: { rotate: '90deg' }
+                  }} /></motion.span>
+
+                </PopoverTrigger>
+                <PopoverContent>
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground">Additional features coming soon!</p>
+                  </div>
+                </PopoverContent>
+              </Popover>
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
