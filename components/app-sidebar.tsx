@@ -15,7 +15,7 @@ import {
 import Link from "next/link"
 import { Button } from "./ui/button"
 import { CopyButton } from "./CopyButton"
-import { leaveRoom, Room, RoomInfo } from "@/lib/RoomService"
+import { RoomInfo } from "@/lib/type"
 import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -48,14 +48,7 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
         const session = getUserSession()
         setcurrentUser(session?.userName ?? '')
     }, [])
-    const leaveRoomFn = async () => {
-        if (!roomData?.code || !currentUser) return
-
-        const response = await leaveRoom(roomData.code, currentUser)
-        if (response.success) {
-            router.push('/')
-        }
-    }
+    
     return (
         <Sidebar variant="floating" collapsible="offExamples">
             <SidebarHeader>
@@ -82,7 +75,7 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                             </div>
                         </SidebarMenu>
                         <SidebarMenu>
-                            <Button onClick={leaveRoomFn} variant={'destructive'} className={'py-5 px-4 text-start flex items-center justify-start gap-2 '}><IconDoorExit /> Leave Chat</Button>
+                            <Button variant={'destructive'} className={'py-5 px-4 text-start flex items-center justify-start gap-2 '}><IconDoorExit /> Leave Chat</Button>
 
                         </SidebarMenu>
                         <SidebarMenu>

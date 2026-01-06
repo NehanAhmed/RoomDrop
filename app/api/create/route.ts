@@ -1,4 +1,3 @@
-import { redis } from "@/lib/redis";
 import { createRoom } from "@/lib/RoomService";
 import { NextRequest, NextResponse } from "next/server";
 
