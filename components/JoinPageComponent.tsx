@@ -45,8 +45,8 @@ const JoinPageComp = () => {
 
                 // Check if trying to join the same room
                 const joiningCode = isQRCodeJoin ? roomCode : null
-                const normalizedJoiningCode = joiningCode?.replace('-', '').toUpperCase()
-                const normalizedSessionCode = session.roomCode?.replace('-', '').toUpperCase()
+                const normalizedJoiningCode = joiningCode?.toUpperCase()
+                const normalizedSessionCode = session.roomCode?.toUpperCase()
 
                 if (normalizedJoiningCode && normalizedJoiningCode === normalizedSessionCode) {
                     // Same room - redirect immediately
