@@ -30,7 +30,7 @@ const Page = async ({ params }: { params: Promise<{ roomCode: string }> }) => {
             <AppSidebar roomData={roomData} />
 
             <main className="w-full h-screen flex flex-col">
-                <SiteHeader />
+                <SiteHeader roomCode={roomCode} />
                 
                 {/* Chat Interface - handles messages and input */}
                 {/* currentUser prop removed - will be handled inside component */}
