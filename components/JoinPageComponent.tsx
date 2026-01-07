@@ -281,6 +281,7 @@ const JoinPageComp = () => {
                                             disabled={loading}
                                             maxLength={6}
                                             pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                                            type='text'
                                         >
                                             <InputOTPGroup>
                                                 <InputOTPSlot className='w-12 h-12 text-lg' index={0} />
