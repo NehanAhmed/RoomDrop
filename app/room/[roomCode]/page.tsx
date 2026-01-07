@@ -1,9 +1,10 @@
+
 import { AppSidebar } from '@/components/app-sidebar'
 import ChatInterface from '@/components/Message/ChatInterface'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { getRoomInfo, roomExists } from '@/lib/RoomService'
-import { cookies } from 'next/headers'
+import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import React from 'react'
 
@@ -31,7 +32,7 @@ const Page = async ({ params }: { params: Promise<{ roomCode: string }> }) => {
 
             <main className="w-full h-screen flex flex-col">
                 <SiteHeader roomCode={roomCode} />
-                
+
                 {/* Chat Interface - handles messages and input */}
                 {/* currentUser prop removed - will be handled inside component */}
                 <ChatInterface roomCode={roomCode} />
