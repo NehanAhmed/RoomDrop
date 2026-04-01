@@ -2,13 +2,12 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { IconSend, IconLoader, IconPlus } from '@tabler/icons-react'
+import { IconSend, IconLoader, IconMessageCircle } from '@tabler/icons-react'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { pusherClient } from '@/lib/pusher' // Import the pusher client
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
-import { motion } from 'motion/react'
+import { pusherClient } from '@/lib/pusher'
+import { motion, AnimatePresence, Variants } from 'motion/react'
 interface Message {
   id: string
   user: string
@@ -26,6 +25,25 @@ interface UserSession {
   joinedAt: string
 }
 
+const messageVariants: Variants = {
+  hidden: { opacity: 0, y: 10, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1
+  }
+}
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05
+    }
+  }
+}
+
 export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState('')
@@ -36,7 +54,6 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const hasLoadedRef = useRef(false)
   const router = useRouter()
-  const PlusIconMotion = motion(IconPlus)
   // 1. Initial Setup: Load Session and Fetch History
   useEffect(() => {
     const getUserSession = (): UserSession | null => {
@@ -182,19 +199,20 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
       .slice(0, 2)
   }
 
-  const getAvatarColor = (name: string) => {
-    const colors = [
-      'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500',
-      'bg-yellow-500', 'bg-indigo-500', 'bg-red-500', 'bg-teal-500',
-    ]
-    const index = name.charCodeAt(0) % colors.length
-    return colors[index]
-  }
-
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <IconLoader className="animate-spin" size={32} />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <IconLoader className="animate-spin w-6 h-6 text-primary" />
+          </div>
+          <p className="text-sm text-muted-foreground">Connecting to room...</p>
+        </motion.div>
       </div>
     )
   }
@@ -206,116 +224,133 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto scroll-smooth"
       >
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+        <div className="max-w-4xl mx-auto px-4 py-6">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center py-12">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <IconSend size={32} className="text-muted-foreground" />
-              </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col items-center justify-center h-full text-center py-12"
+            >
+              <motion.div
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20"
+              >
+                <IconMessageCircle className="w-8 h-8 text-primary" />
+              </motion.div>
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No messages yet
               </h3>
               <p className="text-sm text-muted-foreground max-w-sm">
                 Be the first to send a message in this room!
               </p>
-            </div>
+            </motion.div>
           ) : (
-            messages.map((msg, index) => {
-              const isCurrentUser = msg.user === currentUser
-              const showAvatar = index === 0 || messages[index - 1].user !== msg.user
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="space-y-4"
+            >
+              <AnimatePresence mode="popLayout">
+                {messages.map((msg, index) => {
+                  const isCurrentUser = msg.user === currentUser
+                  const showAvatar = index === 0 || messages[index - 1].user !== msg.user
 
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex items-start gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''
-                    }`}
-                >
-                  {showAvatar ? (
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0 ${isCurrentUser ? 'bg-primary' : getAvatarColor(msg.user)
-                        }`}
+                  return (
+                    <motion.div
+                      key={msg.id}
+                      variants={messageVariants}
+                      layout
+                      className={`flex items-end gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''}`}
                     >
-                      {getInitials(msg.user)}
-                    </div>
-                  ) : (
-                    <div className="w-8 shrink-0" />
-                  )}
+                      {showAvatar ? (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
+                            isCurrentUser ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground'
+                          }`}
+                        >
+                          {getInitials(msg.user)}
+                        </motion.div>
+                      ) : (
+                        <div className="w-8 shrink-0" />
+                      )}
 
-                  <div className={`flex-1 max-w-[70%] ${isCurrentUser ? 'items-end' : 'items-start'} flex flex-col`}>
-                    {showAvatar && (
-                      <div className={`flex items-baseline gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
-                        <span className="font-semibold text-sm">
-                          {isCurrentUser ? 'You' : msg.user}
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatTime(msg.timestamp)}
-                        </span>
+                      <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'} max-w-[75%]`}>
+                        {showAvatar && (
+                          <div className={`flex items-center gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+                            <span className="text-xs font-medium text-muted-foreground">
+                              {isCurrentUser ? 'You' : msg.user}
+                            </span>
+                            <span className="text-xs text-muted-foreground/60">
+                              {formatTime(msg.timestamp)}
+                            </span>
+                          </div>
+                        )}
+                        <motion.div
+                          whileHover={{ scale: 1.01 }}
+                          className={`px-4 py-2.5 ${
+                            isCurrentUser
+                              ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-sm'
+                              : 'bg-card border border-border rounded-2xl rounded-bl-sm'
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                            {msg.message}
+                          </p>
+                        </motion.div>
                       </div>
-                    )}
-                    <div
-                      className={`rounded-lg px-4 py-2 ${isCurrentUser
-                        ? 'bg-primary text-primary-foreground rounded-tr-none'
-                        : 'bg-muted text-foreground rounded-tl-none'
-                        }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap break-words">
-                        {msg.message}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )
-            })
+                    </motion.div>
+                  )
+                })}
+              </AnimatePresence>
+              <div ref={messagesEndRef} />
+            </motion.div>
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="border-t border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto p-4">
-          <form onSubmit={handleSendMessage} className="flex items-end gap-2">
-            <div className="flex gap-2 flex-1">
-              <Popover>
-                <PopoverTrigger>
-                  <motion.span whileHover={'hovered'} initial={'initial'} className={'min-h-11 w-10 border-border dark:bg-input/20 dark:bg-input/30 hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground  inline-flex items-center justify-center shrink-0 whitespace-nowrap select-none rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium outline-none transition-all focus-visible:border-ring focus-visible:ring-[2px] focus-visible:ring-ring/30 aria-invalid:border-destructive aria-invalid:ring-[2px] aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 disabled:pointer-events-none disabled:opacity-50 group/button [&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:pointer-events-none'}><PlusIconMotion variants={{
-                    initial: { rotate: '0deg' },
-                    hovered: { rotate: '90deg' }
-                  }} /></motion.span>
-
-                </PopoverTrigger>
-                <PopoverContent>
-                  <div className="p-4">
-                    <p className="text-sm text-muted-foreground">Additional features coming soon!</p>
-                  </div>
-                </PopoverContent>
-              </Popover>
+          <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+            <motion.div className="flex-1" whileFocus={{ scale: 1.01 }}>
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your message..."
+                placeholder="Type a message..."
                 disabled={sending}
-                className="min-h-[44px] resize-none"
+                className="h-12 bg-background"
                 maxLength={1000}
               />
-            </div>
-            <Button
-              type="submit"
-              size="icon"
-              disabled={!inputMessage.trim() || sending}
-              className="h-[44px] w-[44px] shrink-0"
-            >
-              {sending ? (
-                <IconLoader size={20} className="animate-spin" />
-              ) : (
-                <IconSend size={20} />
-              )}
-            </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                type="submit"
+                size="icon"
+                disabled={!inputMessage.trim() || sending}
+                className="h-12 w-12"
+              >
+                {sending ? (
+                  <IconLoader className="w-5 h-5 animate-spin" />
+                ) : (
+                  <IconSend className="w-5 h-5" />
+                )}
+              </Button>
+            </motion.div>
           </form>
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            Press Enter to send • Shift + Enter for new line
-          </p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-muted-foreground">
+              Press Enter to send
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {inputMessage.length}/1000
+            </p>
+          </div>
         </div>
       </div>
     </div>

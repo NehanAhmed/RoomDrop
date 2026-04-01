@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { IconAlertTriangle, IconClock } from "@tabler/icons-react";
-import { cleanupExpiredRooms } from "@/lib/cleanupRoomUtility";
 
 interface RoomCountdownProps {
   expiresAt: Date;
@@ -90,7 +89,6 @@ export function RoomCountdown({ expiresAt, onCleanup }: RoomCountdownProps) {
 
   const handleExpiredClose = async () => {
     setShowExpiredDialog(false);
-    await cleanupExpiredRooms();
     localStorage.removeItem("chat_room_session");
     router.push("/");
   };
