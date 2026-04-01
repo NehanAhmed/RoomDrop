@@ -90,15 +90,17 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     Control your privacy and security settings
                   </p>
 
-                  <motion.div
-                    whileHover={{ x: 2 }}
-                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                  >
-                    <Link href="/privacy" className="flex items-center gap-2 text-sm">
-                      Privacy Policy
-                      <IconExternalLink className="w-3 h-3 text-muted-foreground" />
-                    </Link>
-                  </motion.div>
+                  <Link href="/privacy" className="block">
+                    <motion.div
+                      whileHover={{ x: 2 }}
+                      className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2 text-sm">
+                        Privacy Policy
+                        <IconExternalLink className="w-3 h-3 text-muted-foreground" />
+                      </span>
+                    </motion.div>
+                  </Link>
                 </div>
               </AccordionContent>
             </AccordionItem>

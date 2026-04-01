@@ -326,7 +326,7 @@ const JoinPageComp = () => {
                                         <div className="space-y-3">
                                             <div>
                                                 <p className="font-medium text-foreground">
-                                                    You're already in a room
+                                                    You&apos;re already in a room
                                                 </p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <IconHash className="w-4 h-4 text-muted-foreground" />

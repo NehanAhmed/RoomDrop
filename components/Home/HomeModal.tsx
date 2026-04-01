@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '../ui/button'
 import Link from 'next/link'
-import { motion, AnimatePresence, Variants } from 'motion/react'
+import { motion, AnimatePresence, Variants, useReducedMotion } from 'motion/react'
 import {
   IconArrowRight,
   IconClock,
@@ -50,9 +50,15 @@ const HomeModal = () => {
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null)
   const [timeRemaining, setTimeRemaining] = useState<string>('')
   const [mounted, setMounted] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
 
+  // Effect 1: Set mounted state
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  // Effect 2: Load session from localStorage
+  useEffect(() => {
     try {
       const sessionData = localStorage.getItem('chat_room_session')
       if (sessionData) {
@@ -108,14 +114,14 @@ const HomeModal = () => {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           initial={{ scale: 1, opacity: 0.5 }}
-          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          animate={shouldReduceMotion ? { scale: 1, opacity: 0.5 } : { scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
+          transition={{ duration: 3, repeat: shouldReduceMotion ? 0 : Infinity, ease: "easeInOut" }}
           className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/5 blur-3xl"
         />
         <motion.div
           initial={{ y: 0 }}
-          animate={{ y: [-8, 8, -8] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          animate={shouldReduceMotion ? { y: 0 } : { y: [-8, 8, -8] }}
+          transition={{ duration: 6, repeat: shouldReduceMotion ? 0 : Infinity, ease: "easeInOut" }}
           className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-primary/3 blur-3xl"
         />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />

@@ -132,7 +132,7 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                     <SidebarGroupContent className="space-y-1 mt-2">
                         {roomData?.participants.map((user) => {
                             const isOnline = onlineSet.has(user)
-                            const isCurrentUser = user === currentUser
+                            const isCurrentUser = user.toLowerCase() === currentUser.toLowerCase()
 
                             return (
                                 <motion.div

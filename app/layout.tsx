@@ -8,7 +8,7 @@ import { IconLoader2 } from "@tabler/icons-react";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  variable: '--font-display',
+  variable: '--font-sans',
   weight: ['400', '500', '600', '700'],
 });
 
@@ -30,18 +30,18 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${geistMono.variable}`} suppressHydrationWarning>
       <body className="font-mono antialiased w-full min-h-screen">
-        <Toaster
-          position="top-right"
-          richColors
-          closeButton
-          duration={3000}
-        />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem={false}
           disableTransitionOnChange
         >
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            duration={3000}
+          />
           <Suspense fallback={<IconLoader2 className="animate-spin m-auto" />}>
             {children}
           </Suspense>

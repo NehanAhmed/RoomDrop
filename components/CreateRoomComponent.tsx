@@ -161,13 +161,9 @@ const CreateRoomComp = () => {
         transition={{ delay: 0.2 }}
         className="absolute top-6 left-6 z-20"
       >
-        <Link href="/">
-          <motion.div whileHover={{ x: -2 }} whileTap={{ scale: 0.95 }}>
-            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-              <IconArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-          </motion.div>
+        <Link href="/" className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors">
+          <IconArrowLeft className="w-4 h-4" />
+          Back
         </Link>
       </motion.div>
 
@@ -238,14 +234,15 @@ const CreateRoomComp = () => {
             </div>
 
             <div className="w-full flex gap-3">
-              <Link href={`/room/${data?.code}`} className="flex-1">
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
-                  <Button className="w-full gap-2">
-                    Enter Room
-                    <IconArrowLeft className="w-4 h-4 rotate-180" />
-                  </Button>
-                </motion.div>
-              </Link>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                <Link
+                  href={`/room/${data?.code}`}
+                  className="inline-flex w-full items-center justify-center gap-2 h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+                >
+                  Enter Room
+                  <IconArrowLeft className="w-4 h-4 rotate-180" />
+                </Link>
+              </motion.div>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button variant="secondary" onClick={handleCloseDialog}>
                   New Room
