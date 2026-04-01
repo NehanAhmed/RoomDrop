@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
+import { Space_Grotesk, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Suspense } from "react";
 import { IconLoader2 } from "@tabler/icons-react";
 
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-sans' });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  weight: ['400', '500', '600', '700'],
 });
 
 const geistMono = Geist_Mono({
@@ -19,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Room Drop - Signup Less Chat Room To Chat with your Friends and Family.",
-  description: "Create instant chat rooms without the hassle of signing up. Share the link and start chatting with friends and family right away!",
+  title: "RoomDrop - Anonymous Chat Rooms",
+  description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
 };
 
 export default function RootLayout({
@@ -29,28 +28,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={jetbrainsMono.variable} suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased w-full min-h-screen `}
-      >
-
-        <Toaster position="top-right"
-          richColors
-          closeButton
-          duration={3000} />
-
+    <html lang="en" className={`${spaceGrotesk.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body className="font-mono antialiased w-full min-h-screen">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
+            duration={3000}
+          />
           <Suspense fallback={<IconLoader2 className="animate-spin m-auto" />}>
-
-          {children}
+            {children}
           </Suspense>
         </ThemeProvider>
-
       </body>
     </html>
   );
