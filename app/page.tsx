@@ -18,11 +18,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "RoomDrop - Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
-    url: "https://roomdrop.vercel.app",
+    url: "https://room-drop.vercel.app",
     siteName: "RoomDrop",
     images: [
       {
-        url: "https://roomdrop.vercel.app/og-image.png",
+        url: "/og.png",
         width: 1200,
         height: 630,
         alt: "RoomDrop Open Graph Image",
@@ -32,10 +32,10 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
+    images: ["/og(1).png"],
     card: "summary_large_image",
     title: "RoomDrop - Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
-    images: ["https://roomdrop.vercel.app/og-image.png"],
     creator: '@Nehanahmed988'
   },
   robots: {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://roomdrop.vercel.app',
+    canonical: 'https://room-drop.vercel.app',
   }
 }
 

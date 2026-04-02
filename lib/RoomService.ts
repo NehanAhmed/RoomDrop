@@ -314,7 +314,7 @@ export async function addMessage(
 
     const message: Message = {
         id: messageId,
-        user: userName,
+        userName: userName,
         message: messageText,
         timestamp,
     };
@@ -381,7 +381,7 @@ export async function getMessages(
 
         const formattedMessages: Message[] = dbMessages.map(msg => ({
             id: msg.id,
-            user: msg.userName,
+            userName: msg.userName,
             message: msg.message,
             timestamp: msg.timestamp.toISOString(),
         }));

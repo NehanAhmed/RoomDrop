@@ -15,11 +15,11 @@ export const metadata: Metadata = {
     openGraph: {
         title: "RoomDrop - An Easy Way to Create and Join Chat Rooms",
         description: "Welcome to RoomDrop, your go-to platform for creating and joining chat rooms effortlessly.",
-        url: "https://roomdrop.vercel.app",
+        url: "https://room-drop.vercel.app",
         siteName: "RoomDrop",
         images: [
             {
-                url: "https://roomdrop.vercel.app/og-image.png",
+                url: "/og.png",
                 width: 1200,
                 height: 630,
                 alt: "RoomDrop Open Graph Image",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "RoomDrop - An Easy Way to Create and Join Chat Rooms",
         description: "Welcome to RoomDrop, your go-to platform for creating and joining chat rooms effortlessly.",
-        images: ["https://roomdrop.vercel.app/og-image.png"],
+        images: ["/og(1).png"],
         creator: '@Nehanahmed988'
     },
     robots: {
