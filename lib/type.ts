@@ -11,7 +11,7 @@ export interface Room {
 
 export interface Message {
     id: string;
-    user: string;
+    userName: string;
     message: string;
     timestamp: string;
 }

@@ -42,7 +42,7 @@ export default function RootLayout({
             closeButton
             duration={3000}
           />
-          <Suspense fallback={<IconLoader2 className="animate-spin m-auto" />}>
+          <Suspense fallback={<div className="flex items-center justify-center h-screen"><IconLoader2 className="animate-spin m-auto h-8 w-8" /></div>}>
             {children}
           </Suspense>
         </ThemeProvider>
