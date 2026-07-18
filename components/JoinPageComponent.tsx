@@ -26,7 +26,7 @@ import {
     IconClock
 } from '@tabler/icons-react'
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
-import { motion, AnimatePresence, Variants } from 'motion/react'
+
 import Link from 'next/link'
 
 interface ExistingSession {
@@ -35,32 +35,11 @@ interface ExistingSession {
     joinedAt: string
     expiresAt?: string
 }
-
-const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.08,
-            delayChildren: 0.1
-        }
-    }
-}
-
-const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: {
-        opacity: 1,
-        y: 0
-    }
-}
-
 const JoinPageComp = () => {
     const [name, setName] = useState('')
     const [code, setCode] = useState('')
     const [loading, setLoading] = useState(false)
     const [existingSession, setExistingSession] = useState<ExistingSession | null>(null)
-    const [focusedField, setFocusedField] = useState<string | null>(null)
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -247,58 +226,40 @@ const JoinPageComp = () => {
             <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
                 {/* Background Elements */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <motion.div
-                        initial={{ scale: 1, opacity: 0.4 }}
-                        animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.6, 0.4] }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    <div
                         className="absolute top-1/4 left-1/3 w-80 h-80 rounded-full bg-primary/5 blur-3xl"
                     />
-                    <motion.div
-                        initial={{ y: 0 }}
-                        animate={{ y: [-6, 6, -6] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                    <div
                         className="absolute bottom-1/4 right-1/3 w-64 h-64 rounded-full bg-primary/3 blur-3xl"
                     />
                 </div>
 
                 {/* Back Button */}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
+                <div
                     className="absolute top-6 left-6 z-20"
                 >
                     <Link href="/">
-                        <motion.div whileHover={{ x: -2 }} whileTap={{ scale: 0.95 }}>
-                            <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                                <IconArrowLeft className="w-4 h-4" />
-                                Back
-                            </Button>
-                        </motion.div>
+                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
+                            <IconArrowLeft className="w-4 h-4" />
+                            Back
+                        </Button>
                     </Link>
-                </motion.div>
+                </div>
 
                 {/* Main Content */}
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
+                <div
                     className="relative z-10 w-full max-w-md mx-auto px-6"
                 >
                     {/* Header */}
-                    <motion.div variants={itemVariants} className="text-center mb-8">
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ delay: 0.1, type: "spring" }}
-                            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-4"
+                    <div className="text-center mb-8">
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-4"
                         >
                             {isQRCodeJoin ? (
                                 <IconQrcode className="w-7 h-7 text-primary" />
                             ) : (
                                 <IconDoorEnter className="w-7 h-7 text-primary" />
                             )}
-                        </motion.div>
+                        </div>
                         <h1 className="text-3xl font-semibold tracking-tight mb-2" style={{ fontFamily: 'var(--font-display)' }}>
                             Join Room
                         </h1>
@@ -307,19 +268,13 @@ const JoinPageComp = () => {
                                 ? 'Enter your name to join via QR code'
                                 : 'Enter the room code to join the conversation'}
                         </p>
-                    </motion.div>
+                    </div>
 
                     {/* Existing Session Alert */}
-                    <AnimatePresence>
-                        {existingSession && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                                transition={{ duration: 0.3 }}
-                                variants={itemVariants}
-                                className="mb-6"
-                            >
+                    {existingSession && (
+                        <div
+                            className="mb-6"
+                        >
                                 <Alert className="border-primary/20 bg-card">
                                     <IconAlertCircle className="h-5 w-5 text-primary" />
                                     <AlertDescription className="ml-3">
@@ -340,7 +295,7 @@ const JoinPageComp = () => {
                                                 )}
                                             </div>
                                             <div className="flex gap-2">
-                                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                                                <div className="flex-1">
                                                     <Button
                                                         size="sm"
                                                         variant="default"
@@ -349,8 +304,8 @@ const JoinPageComp = () => {
                                                     >
                                                         Return to Room
                                                     </Button>
-                                                </motion.div>
-                                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                                </div>
+                                                <div>
                                                     <Button
                                                         size="sm"
                                                         variant="secondary"
@@ -359,27 +314,23 @@ const JoinPageComp = () => {
                                                     >
                                                         Join New
                                                     </Button>
-                                                </motion.div>
+                                                </div>
                                             </div>
                                         </div>
                                     </AlertDescription>
                                 </Alert>
-                            </motion.div>
+                            </div>
                         )}
-                    </AnimatePresence>
 
                     {/* Form */}
-                    <motion.form
-                        variants={itemVariants}
+                    <form
                         onSubmit={handleSubmit}
                         className="space-y-6"
                     >
                         {/* Room Code Field - Manual Entry */}
                         {!isQRCodeJoin && (
-                            <motion.div
+                            <div
                                 className="space-y-3"
-                                animate={{ scale: focusedField === 'code' ? 1.01 : 1 }}
-                                transition={{ duration: 0.2 }}
                             >
                                 <Label className="flex items-center gap-2 text-sm font-medium">
                                     <IconHash className="w-4 h-4 text-muted-foreground" />
@@ -389,8 +340,6 @@ const JoinPageComp = () => {
                                     <InputOTP
                                         value={code}
                                         onChange={(value) => setCode(value)}
-                                        onFocus={() => setFocusedField('code')}
-                                        onBlur={() => setFocusedField(null)}
                                         disabled={loading}
                                         maxLength={6}
                                         pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
@@ -413,22 +362,19 @@ const JoinPageComp = () => {
                                 <p className='text-xs text-muted-foreground text-center'>
                                     Enter 6-character room code
                                 </p>
-                            </motion.div>
+                            </div>
                         )}
 
                         {/* QR Code Display */}
                         {isQRCodeJoin && roomCode && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
+                            <div
                                 className='space-y-3'
                             >
                                 <Label className="flex items-center gap-2 text-sm font-medium">
                                     <IconQrcode className="w-4 h-4 text-muted-foreground" />
                                     Room from QR
                                 </Label>
-                                <motion.div
-                                    whileHover={{ scale: 1.02 }}
+                                <div
                                     className="p-4 bg-card border border-border/50 rounded-xl"
                                 >
                                     <div className="flex items-center justify-center gap-3">
@@ -437,15 +383,13 @@ const JoinPageComp = () => {
                                             {roomCode.slice(0, 3).toUpperCase()}-{roomCode.slice(3).toUpperCase()}
                                         </span>
                                     </div>
-                                </motion.div>
-                            </motion.div>
+                                </div>
+                            </div>
                         )}
 
                         {/* Name Field */}
-                        <motion.div
+                        <div
                             className="space-y-2"
-                            animate={{ scale: focusedField === 'name' ? 1.01 : 1 }}
-                            transition={{ duration: 0.2 }}
                         >
                             <Label htmlFor='name' className="flex items-center gap-2 text-sm font-medium">
                                 <IconUser className="w-4 h-4 text-muted-foreground" />
@@ -457,8 +401,6 @@ const JoinPageComp = () => {
                                 type='text'
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                onFocus={() => setFocusedField('name')}
-                                onBlur={() => setFocusedField(null)}
                                 disabled={loading}
                                 maxLength={50}
                                 className='h-12 transition-all duration-200'
@@ -466,17 +408,12 @@ const JoinPageComp = () => {
                             <p className='text-xs text-muted-foreground'>
                                 {name.length}/50 characters
                             </p>
-                        </motion.div>
+                        </div>
 
                         {/* Submit Button */}
-                        <motion.div
-                            variants={itemVariants}
+                        <div
                             className="pt-2"
                         >
-                            <motion.div
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                            >
                                 <Button
                                     type='submit'
                                     size="lg"
@@ -495,18 +432,16 @@ const JoinPageComp = () => {
                                         </>
                                     )}
                                 </Button>
-                            </motion.div>
-                        </motion.div>
-                    </motion.form>
+                        </div>
+                    </form>
 
                     {/* Footer Note */}
-                    <motion.p
-                        variants={itemVariants}
+                    <p
                         className="text-center text-xs text-muted-foreground/60 mt-8"
                     >
                         Your name will be visible to other room participants
-                    </motion.p>
-                </motion.div>
+                    </p>
+                </div>
             </div>
         </Suspense>
     )

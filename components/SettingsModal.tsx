@@ -16,7 +16,6 @@ import {
 import { Label } from "@/components/ui/label"
 import { ThemeToggle } from "./ThemeToggle"
 import Link from "next/link"
-import { motion } from "motion/react"
 import { IconPalette, IconShield, IconInfoCircle, IconExternalLink, IconCode, IconCalendar, IconUser } from "@tabler/icons-react"
 
 interface SettingsModalProps {
@@ -30,14 +29,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 200 }}
-              className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
-            >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <IconPalette className="w-5 h-5 text-primary" />
-            </motion.div>
+            </div>
             <div>
               <DialogTitle className="text-xl">Settings</DialogTitle>
               <DialogDescription>
@@ -91,15 +85,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   </p>
 
                   <Link href="/privacy" className="block">
-                    <motion.div
-                      whileHover={{ x: 2 }}
-                      className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
-                    >
+                    <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                       <span className="flex items-center gap-2 text-sm">
                         Privacy Policy
                         <IconExternalLink className="w-3 h-3 text-muted-foreground" />
                       </span>
-                    </motion.div>
+                    </div>
                   </Link>
                 </div>
               </AccordionContent>

@@ -10,7 +10,7 @@ import { useQRCode } from 'next-qrcode'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
-import { motion, AnimatePresence, Variants } from 'motion/react'
+
 
 interface RoomCreationResponse {
   message: string
@@ -18,26 +18,6 @@ interface RoomCreationResponse {
   expiresAt: string
   status: number
 }
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1
-    }
-  }
-}
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: {
-    opacity: 1,
-    y: 0
-  }
-}
-
 const CreateRoomComp = () => {
   const [name, setName] = useState<string>('')
   const [duration, setDuration] = useState<string>('')
@@ -45,7 +25,6 @@ const CreateRoomComp = () => {
   const [data, setData] = useState<RoomCreationResponse>()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -140,57 +119,39 @@ const CreateRoomComp = () => {
     <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          initial={{ scale: 1, opacity: 0.4 }}
-          animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.6, 0.4] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        <div
           className="absolute top-1/3 right-1/4 w-80 h-80 rounded-full bg-primary/5 blur-3xl"
         />
-        <motion.div
-          initial={{ y: 0 }}
-          animate={{ y: [-6, 6, -6] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        <div
           className="absolute bottom-1/3 left-1/4 w-64 h-64 rounded-full bg-primary/3 blur-3xl"
         />
       </div>
 
       {/* Back Button */}
-      <motion.div
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.2 }}
+      <div
         className="absolute top-6 left-6 z-20"
       >
         <Link href="/" className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground rounded-md hover:bg-muted transition-colors">
           <IconArrowLeft className="w-4 h-4" />
           Back
         </Link>
-      </motion.div>
+      </div>
 
       {/* Success Dialog */}
       <Dialog open={success} onOpenChange={handleCloseDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                   <IconCheck className="w-5 h-5 text-primary" />
                 </div>
-              </motion.div>
               Room Created!
             </DialogTitle>
             <DialogDescription>
               Share this code with others to join your room
             </DialogDescription>
           </DialogHeader>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+          <div
             className="flex flex-col items-center gap-5"
           >
             <div className="p-4 bg-card rounded-xl border border-border/50">
@@ -211,8 +172,7 @@ const CreateRoomComp = () => {
 
             <div className="w-full">
               <Label className="text-xs text-muted-foreground uppercase tracking-wider mb-2 block">Room Code</Label>
-              <motion.div
-                whileHover={{ scale: 1.01 }}
+              <div
                 className="flex items-center justify-between gap-3 p-4 bg-card border border-border/50 rounded-xl"
               >
                 <div className="flex items-center gap-3">
@@ -225,7 +185,7 @@ const CreateRoomComp = () => {
                   className="p-2 hover:bg-primary/10 rounded-lg transition-colors"
                   copiedClassName="p-2 bg-primary/20 rounded-lg"
                 />
-              </motion.div>
+              </div>
             </div>
 
             <div className="w-full flex items-center gap-2 text-sm text-muted-foreground">
@@ -233,62 +193,51 @@ const CreateRoomComp = () => {
               <span>Expires: {data?.expiresAt ? formatExpiryDate(data.expiresAt) : 'N/A'}</span>
             </div>
 
-            <div className="w-full flex gap-3">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
-                <Link
-                  href={`/room/${data?.code}`}
-                  className="inline-flex w-full items-center justify-center gap-2 h-10 px-4 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
-                >
+            <div className="w-full flex gap-1">
+              <Link
+                href={`/room/${data?.code}`}
+                className='w-10/12 flex items-center justify-center gap-2'
+              >
+
+                <Button className="w-full">
                   Enter Room
                   <IconArrowLeft className="w-4 h-4 rotate-180" />
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                </Button>
+              </Link>
                 <Button variant="secondary" onClick={handleCloseDialog}>
                   New Room
                 </Button>
-              </motion.div>
             </div>
-          </motion.div>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Main Content */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
+      <div
         className="relative z-10 w-full max-w-md mx-auto px-6"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="text-center mb-8">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, type: "spring" }}
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-4"
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-4"
           >
             <IconPlus className="w-7 h-7 text-primary" />
-          </motion.div>
+          </div>
           <h1 className="text-3xl font-semibold tracking-tight mb-2" style={{ fontFamily: 'var(--font-display)' }}>
             Create Room
           </h1>
           <p className="text-muted-foreground text-sm">
             Set up your anonymous chat space
           </p>
-        </motion.div>
+        </div>
 
         {/* Form */}
-        <motion.form
-          variants={itemVariants}
+        <form
           className="space-y-5"
           onSubmit={handleSubmit}
         >
           {/* Name Field */}
-          <motion.div
+          <div
             className="space-y-2"
-            animate={{ scale: focusedField === 'name' ? 1.01 : 1 }}
-            transition={{ duration: 0.2 }}
           >
             <Label htmlFor="name" className="flex items-center gap-2 text-sm font-medium">
               <IconSparkles className="w-4 h-4 text-muted-foreground" />
@@ -301,18 +250,14 @@ const CreateRoomComp = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              onFocus={() => setFocusedField('name')}
-              onBlur={() => setFocusedField(null)}
               maxLength={50}
               className="h-12 transition-all duration-200"
             />
-          </motion.div>
+          </div>
 
           {/* Duration Field */}
-          <motion.div
+          <div
             className="space-y-2"
-            animate={{ scale: focusedField === 'duration' ? 1.01 : 1 }}
-            transition={{ duration: 0.2 }}
           >
             <Label htmlFor="duration" className="flex items-center gap-2 text-sm font-medium">
               <IconClock className="w-4 h-4 text-muted-foreground" />
@@ -327,18 +272,14 @@ const CreateRoomComp = () => {
               max="1440"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
-              onFocus={() => setFocusedField('duration')}
-              onBlur={() => setFocusedField(null)}
               className="h-12 transition-all duration-200"
             />
             <p className="text-xs text-muted-foreground">Maximum: 1440 minutes (24 hours)</p>
-          </motion.div>
+          </div>
 
           {/* Participants Field */}
-          <motion.div
+          <div
             className="space-y-2"
-            animate={{ scale: focusedField === 'participants' ? 1.01 : 1 }}
-            transition={{ duration: 0.2 }}
           >
             <Label htmlFor="participants" className="flex items-center gap-2 text-sm font-medium">
               <IconUsers className="w-4 h-4 text-muted-foreground" />
@@ -353,22 +294,15 @@ const CreateRoomComp = () => {
               max="50"
               value={participantsCount}
               onChange={(e) => setParticipantsCount(e.target.value)}
-              onFocus={() => setFocusedField('participants')}
-              onBlur={() => setFocusedField(null)}
               className="h-12 transition-all duration-200"
             />
             <p className="text-xs text-muted-foreground">Default: 5 people</p>
-          </motion.div>
+          </div>
 
           {/* Submit Button */}
-          <motion.div
-            variants={itemVariants}
+          <div
             className="pt-2"
           >
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
               <Button
                 type="submit"
                 size="lg"
@@ -387,18 +321,16 @@ const CreateRoomComp = () => {
                   </>
                 )}
               </Button>
-            </motion.div>
-          </motion.div>
-        </motion.form>
+          </div>
+        </form>
 
         {/* Footer Note */}
-        <motion.p
-          variants={itemVariants}
+        <p
           className="text-center text-xs text-muted-foreground/60 mt-8"
         >
           Rooms are automatically deleted after expiry
-        </motion.p>
-      </motion.div>
+        </p>
+      </div>
     </div>
   )
 }

@@ -7,7 +7,7 @@ import { useState, useRef, useEffect, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { pusherClient } from '@/lib/pusher'
-import { motion, AnimatePresence, type Variants, type Transition } from 'motion/react'
+
 
 interface Message {
   id: string
@@ -24,84 +24,6 @@ interface UserSession {
   userName: string
   roomCode: string
   joinedAt: string
-}
-
-// ============================================
-// ANIMATION VARIANTS - Production-ready spring transitions
-// ============================================
-
-const springTransition: Transition = {
-  type: 'spring',
-  stiffness: 400,
-  damping: 30,
-  mass: 0.8,
-}
-
-const fadeInUpTransition: Transition = {
-  type: 'spring',
-  stiffness: 300,
-  damping: 25,
-  mass: 0.5,
-}
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.04,
-      delayChildren: 0.1,
-    },
-  },
-}
-
-const messageVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    y: 16,
-    scale: 0.96,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: fadeInUpTransition,
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.95,
-    transition: { duration: 0.2 },
-  },
-}
-
-const avatarVariants: Variants = {
-  hidden: { scale: 0, opacity: 0 },
-  visible: {
-    scale: 1,
-    opacity: 1,
-    transition: {
-      type: 'spring',
-      stiffness: 400,
-      damping: 15,
-    },
-  },
-}
-
-const bubbleVariants: Variants = {
-  initial: { scale: 1 },
-  hover: { scale: 1.02 },
-  tap: { scale: 0.98 },
-}
-
-const iconContainerVariants: Variants = {
-  initial: { scale: 1, rotate: 0 },
-  hover: { scale: 1.05, rotate: 5 },
-  tap: { scale: 0.95 },
-}
-
-const inputContainerVariants: Variants = {
-  focus: { scale: 1.01 },
-  blur: { scale: 1 },
 }
 
 // ============================================
@@ -129,21 +51,11 @@ const MessageItem = memo(function MessageItem({
   const showAvatar = index === 0 || messages[index - 1]?.userName !== msg.userName
 
   return (
-    <motion.div
-      key={msg.id}
-      variants={messageVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      layout="position"
+    <div
       className={`flex items-end gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''}`}
-      style={{ willChange: 'transform, opacity' }}
     >
       {showAvatar ? (
-        <motion.div
-          variants={avatarVariants}
-          initial="hidden"
-          animate="visible"
+        <div
           className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
             isCurrentUser
               ? 'bg-primary text-primary-foreground'
@@ -151,7 +63,7 @@ const MessageItem = memo(function MessageItem({
           }`}
         >
           {getInitials(msg.userName)}
-        </motion.div>
+        </div>
       ) : (
         <div className="w-8 shrink-0" />
       )}
@@ -171,12 +83,7 @@ const MessageItem = memo(function MessageItem({
             </span>
           </div>
         )}
-        <motion.div
-          variants={bubbleVariants}
-          initial="initial"
-          whileHover="hover"
-          whileTap="tap"
-          transition={springTransition}
+        <div
           className={`px-4 py-2.5 ${
             isCurrentUser
               ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-sm'
@@ -186,9 +93,9 @@ const MessageItem = memo(function MessageItem({
           <p className="text-sm whitespace-pre-wrap wrap-break-word leading-relaxed">
             {msg.message}
           </p>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   )
 })
 
@@ -202,7 +109,6 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const [sending, setSending] = useState(false)
   const [currentUser, setCurrentUser] = useState<string | null>('')
   const [loading, setLoading] = useState(true)
-  const [isInputFocused, setIsInputFocused] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const hasLoadedRef = useRef(false)
@@ -408,28 +314,20 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+        <div
           className="flex flex-col items-center gap-4"
         >
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          <div
             className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center"
           >
             <IconLoader className="w-6 h-6 text-primary" />
-          </motion.div>
-          <motion.p
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
+          </div>
+          <p
             className="text-sm text-muted-foreground"
           >
             Connecting to room...
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
       </div>
     )
   }
@@ -446,42 +344,26 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
         className="flex-1 overflow-y-auto scroll-smooth"
       >
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <AnimatePresence mode="wait">
-            {messages.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+          {messages.length === 0 ? (
+              <div
                 className="flex flex-col items-center justify-center h-full text-center py-12"
               >
-                <motion.div
-                  variants={iconContainerVariants}
-                  initial="initial"
-                  whileHover="hover"
-                  whileTap="tap"
-                  transition={springTransition}
+                <div
                   className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 border border-primary/20 cursor-pointer"
                 >
                   <IconMessageCircle className="w-8 h-8 text-primary" />
-                </motion.div>
+                </div>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
                   No messages yet
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-sm">
                   Be the first to send a message in this room!
                 </p>
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
-                key="messages"
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
+              <div
                 className="space-y-4"
               >
-                <AnimatePresence mode="popLayout" initial={false}>
                   {messages.map((msg, index) => (
                     <MessageItem
                       key={msg.id}
@@ -493,11 +375,9 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                       getInitials={getInitials}
                     />
                   ))}
-                </AnimatePresence>
                 <div ref={messagesEndRef} />
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
         </div>
       </div>
 
@@ -505,29 +385,19 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
       <div className="border-t border-border bg-card/50 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto p-4">
           <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-            <motion.div
+            <div
               className="flex-1"
-              variants={inputContainerVariants}
-              animate={isInputFocused ? 'focus' : 'blur'}
-              transition={springTransition}
             >
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onFocus={() => setIsInputFocused(true)}
-                onBlur={() => setIsInputFocused(false)}
                 placeholder="Type a message..."
                 disabled={sending}
                 className="h-12 bg-background"
                 maxLength={1000}
               />
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={springTransition}
-            >
+            </div>
               <Button
                 type="submit"
                 size="icon"
@@ -535,17 +405,11 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                 className="h-12 w-12"
               >
                 {sending ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                  >
                     <IconLoader className="w-5 h-5" />
-                  </motion.div>
                 ) : (
                   <IconSend className="w-5 h-5" />
                 )}
               </Button>
-            </motion.div>
           </form>
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-muted-foreground">Press Enter to send</p>

@@ -18,7 +18,7 @@ import { toast } from "sonner"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { SettingsModal } from "./SettingsModal"
-import { motion } from "motion/react"
+
 
 interface UserSession {
     userName: string
@@ -56,12 +56,10 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
             <SidebarHeader className="pb-2">
                 <SidebarMenu>
                     <Link href="/" className="mb-4">
-                        <motion.div whileHover={{ x: -2 }} whileTap={{ scale: 0.98 }}>
-                            <Button variant="ghost" className="w-full justify-start gap-2">
-                                <IconArrowLeft className="w-4 h-4" />
-                                Back to Home
-                            </Button>
-                        </motion.div>
+                        <Button variant="ghost" className="w-full justify-start gap-2">
+                            <IconArrowLeft className="w-4 h-4" />
+                            Back to Home
+                        </Button>
                     </Link>
                 </SidebarMenu>
 
@@ -71,8 +69,7 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                     </SidebarGroupLabel>
                     <SidebarGroupContent className="space-y-3">
                         {/* Room Code Card */}
-                        <motion.div
-                            whileHover={{ scale: 1.02 }}
+                        <div
                             className="p-3 bg-card border border-border/50 rounded-xl"
                         >
                             <div className="flex items-center gap-2 mb-2">
@@ -87,31 +84,27 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                                     onCopySuccess={() => toast.success('Room code copied!')}
                                 />
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Action Buttons */}
                         <div className="space-y-2 w-full h-full">
-                            <motion.div className="w-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                <Button
-                                    variant="destructive"
-                                    className="min-w-full flex items-center justify-center  sm:w-auto px-8 py-6 text-base font-medium gap-2"
-                                    onClick={handleLeaveRoom}
-                                >
-                                    <IconDoorExit className="w-4 h-4" />
-                                    Leave Chat
-                                </Button>
-                            </motion.div>
+                            <Button
+                                variant="destructive"
+                                className="min-w-full flex items-center justify-center sm:w-auto px-8 py-6 text-base font-medium gap-2"
+                                onClick={handleLeaveRoom}
+                            >
+                                <IconDoorExit className="w-4 h-4" />
+                                Leave Chat
+                            </Button>
 
-                            <motion.div className="w-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                <Button
-                                    variant="secondary"
-                                    className="min-w-full justify-center  sm:w-auto px-8 py-6 text-base font-medium gap-2"
-                                    onClick={() => setSettingsOpen(true)}
-                                >
-                                    <IconSettings className="w-4 h-4" />
-                                    Settings
-                                </Button>
-                            </motion.div>
+                            <Button
+                                variant="secondary"
+                                className="min-w-full justify-center sm:w-auto px-8 py-6 text-base font-medium gap-2"
+                                onClick={() => setSettingsOpen(true)}
+                            >
+                                <IconSettings className="w-4 h-4" />
+                                Settings
+                            </Button>
                         </div>
 
                         <SettingsModal
@@ -135,10 +128,8 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                             const isCurrentUser = user.toLowerCase() === currentUser.toLowerCase()
 
                             return (
-                                <motion.div
+                                <div
                                     key={user}
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
                                     className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-muted/50 transition-colors"
                                 >
                                     <div className="flex items-center gap-3">
@@ -159,22 +150,14 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
                                         </div>
                                     </div>
 
-                                    <motion.div
-                                        animate={{
-                                            scale: isOnline ? [1, 1.2, 1] : 1,
-                                        }}
-                                        transition={{
-                                            duration: 2,
-                                            repeat: isOnline ? Infinity : 0,
-                                            ease: "easeInOut"
-                                        }}
+                                    <div
                                         className={`h-2 w-2 rounded-full ${
                                             isOnline
                                                 ? 'bg-primary'
                                                 : 'bg-muted-foreground/30'
                                         }`}
                                     />
-                                </motion.div>
+                                </div>
                             )
                         })}
                     </SidebarGroupContent>
