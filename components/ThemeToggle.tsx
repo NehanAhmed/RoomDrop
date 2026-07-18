@@ -3,41 +3,30 @@
 import { useTheme } from 'next-themes'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { IconSun, IconMoon, IconDeviceDesktop } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-
-  // Avoid hydration mismatch
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
 
   if (!mounted) {
-    return (
-      <div className="w-[180px] h-9 bg-muted rounded-md animate-pulse" />
-    )
+    return <div className="w-[180px] h-9 bg-muted/50 rounded-lg" />
   }
 
   return (
-    <Tabs 
-      value={theme} 
-      onValueChange={setTheme}
-      className="w-full"
-    >
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="light" className="gap-2">
+    <Tabs value={theme} onValueChange={setTheme}>
+      <TabsList>
+        <TabsTrigger value="light" className="active:scale-[0.95] transition-transform duration-150 ease-out-strong">
           <IconSun size={16} />
-          <span className="hidden sm:inline">Light</span>
+          Light
         </TabsTrigger>
-        <TabsTrigger value="dark" className="gap-2">
+        <TabsTrigger value="dark" className="active:scale-[0.95] transition-transform duration-150 ease-out-strong">
           <IconMoon size={16} />
-          <span className="hidden sm:inline">Dark</span>
+          Dark
         </TabsTrigger>
-        <TabsTrigger value="system" className="gap-2">
+        <TabsTrigger value="system" className="active:scale-[0.95] transition-transform duration-150 ease-out-strong">
           <IconDeviceDesktop size={16} />
-          <span className="hidden sm:inline">System</span>
+          System
         </TabsTrigger>
       </TabsList>
     </Tabs>

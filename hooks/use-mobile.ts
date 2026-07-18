@@ -1,40 +1,19 @@
-"use client"
+import * as React from "react"
 
-import { useEffect, useState } from "react"
+const MOBILE_BREAKPOINT = 768
 
-const MOBILE_BREAKPOINT = 768 // matches Tailwind md
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
 
-export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false
-    return window.innerWidth < MOBILE_BREAKPOINT
-  })
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-
-    const onChange = (event: MediaQueryListEvent) => {
-      setIsMobile(event.matches)
+  React.useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
+    const onChange = () => {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
     }
-
-    // Initial sync
-    setIsMobile(mediaQuery.matches)
-
-    // Modern + legacy support
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener("change", onChange)
-    } else {
-      mediaQuery.addListener(onChange)
-    }
-
-    return () => {
-      if (mediaQuery.removeEventListener) {
-        mediaQuery.removeEventListener("change", onChange)
-      } else {
-        mediaQuery.removeListener(onChange)
-      }
-    }
+    mql.addEventListener("change", onChange)
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    return () => mql.removeEventListener("change", onChange)
   }, [])
 
-  return isMobile
+  return !!isMobile
 }

@@ -1,450 +1,371 @@
 'use client'
 
+import { useState, useEffect, Suspense } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import React, { useState, useEffect, Suspense } from 'react'
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSeparator,
-    InputOTPSlot,
-} from "@/components/ui/input-otp"
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { useRouter, useSearchParams } from 'next/navigation'
-import {
-    IconLoader,
-    IconAlertCircle,
-    IconLoader2,
-    IconArrowLeft,
-    IconLogin,
-    IconDoorEnter,
-    IconQrcode,
-    IconUser,
-    IconHash,
-    IconClock
-} from '@tabler/icons-react'
-import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
-
 import Link from 'next/link'
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from '@/components/ui/input-otp'
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from 'input-otp'
+import {
+  IconLoader,
+  IconArrowLeft,
+  IconLogin,
+  IconDoorEnter,
+  IconQrcode,
+  IconUser,
+  IconHash,
+  IconClock,
+  IconLoader2,
+} from '@tabler/icons-react'
 
 interface ExistingSession {
-    userName: string
-    roomCode: string
-    joinedAt: string
-    expiresAt?: string
+  userName: string
+  roomCode: string
+  joinedAt: string
+  expiresAt?: string
 }
-const JoinPageComp = () => {
-    const [name, setName] = useState('')
-    const [code, setCode] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [existingSession, setExistingSession] = useState<ExistingSession | null>(null)
-    const router = useRouter()
-    const searchParams = useSearchParams()
 
-    const by = searchParams.get('by')
-    const roomCode = searchParams.get('code')
-    const isQRCodeJoin = by === 'qrcode'
-    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
+function JoinForm() {
+  const [name, setName] = useState('')
+  const [code, setCode] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [existingSession, setExistingSession] = useState<ExistingSession | null>(null)
+  const router = useRouter()
+  const searchParams = useSearchParams()
 
-    useEffect(() => {
-        try {
-            const sessionData = localStorage.getItem('chat_room_session')
-            if (sessionData) {
-                const session: ExistingSession = JSON.parse(sessionData)
-                const joiningCode = isQRCodeJoin ? roomCode : null
-                const normalizedJoiningCode = joiningCode?.toUpperCase()
-                const normalizedSessionCode = session.roomCode?.toUpperCase()
+  const by = searchParams.get('by')
+  const roomCodeParam = searchParams.get('code')
+  const isQRCodeJoin = by === 'qrcode'
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
 
-                if (normalizedJoiningCode && normalizedJoiningCode === normalizedSessionCode) {
-                    toast.info('Redirecting to your active room...')
-                    router.push(`/room/${session.roomCode}`)
-                    return
-                }
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('chat_room_session')
+      if (!raw) return
+      const session: ExistingSession = JSON.parse(raw)
 
-                if (session.expiresAt) {
-                    const expiryTime = new Date(session.expiresAt).getTime()
-                    const now = new Date().getTime()
-
-                    if (now < expiryTime) {
-                        setExistingSession(session)
-                        setName(session.userName)
-                    } else {
-                        localStorage.removeItem('chat_room_session')
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Error checking session:', error)
-            localStorage.removeItem('chat_room_session')
+      if (isQRCodeJoin && roomCodeParam) {
+        if (session.roomCode?.toUpperCase() === roomCodeParam.toUpperCase()) {
+          toast.info('Redirecting to your active room…')
+          router.push(`/room/${session.roomCode}`)
+          return
         }
-    }, [isQRCodeJoin, roomCode, router])
+      }
 
-    useEffect(() => {
-        if (isQRCodeJoin && roomCode && roomCode.length !== 6) {
-            toast.error("Invalid QR code. Please scan again.")
+      if (session.expiresAt) {
+        if (Date.now() < new Date(session.expiresAt).getTime()) {
+          setExistingSession(session)
+          setName(session.userName)
+        } else {
+          localStorage.removeItem('chat_room_session')
         }
-    }, [isQRCodeJoin, roomCode])
-
-    const validateInputs = () => {
-        if (!name.trim()) {
-            toast.error("Name is required")
-            return false
-        }
-
-        if (name.trim().length > 50) {
-            toast.error("Name must be 50 characters or less")
-            return false
-        }
-
-        const codeToValidate = isQRCodeJoin ? roomCode : code
-
-        if (!codeToValidate) {
-            toast.error(isQRCodeJoin ? "Invalid QR code" : "Room code is required")
-            return false
-        }
-
-        if (codeToValidate.length !== 6) {
-            toast.error("Room code must be 6 characters")
-            return false
-        }
-
-        return true
+      } else {
+        setExistingSession(session)
+        setName(session.userName)
+      }
+    } catch {
+      localStorage.removeItem('chat_room_session')
     }
+  }, [isQRCodeJoin, roomCodeParam, router])
 
-    const joinRoom = async (formattedCode: string) => {
-        const response = await fetch(`${BASE_URL}/api/join`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                code: formattedCode,
-                name: name.trim()
-            })
-        })
-
-        const responseData = await response.json()
-
-        if (!response.ok) {
-            throw new Error(responseData.message || "Failed to join room")
-        }
-
-        return responseData
+  useEffect(() => {
+    if (isQRCodeJoin && roomCodeParam && roomCodeParam.length !== 6) {
+      toast.error('Invalid QR code. Please scan again.')
     }
+  }, [isQRCodeJoin, roomCodeParam])
 
-    const saveSession = (formattedCode: string, expiresAt?: string) => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('chat_room_session', JSON.stringify({
-                userName: name.trim(),
-                roomCode: formattedCode,
-                joinedAt: new Date().toISOString(),
-                expiresAt: expiresAt
-            }))
-        }
+  const validateInputs = () => {
+    if (!name.trim()) {
+      toast.error('Name is required')
+      return false
     }
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-
-        if (!validateInputs()) return
-
-        setLoading(true)
-
-        try {
-            const codeToUse = isQRCodeJoin ? roomCode! : code
-            const formattedCode = `${codeToUse.slice(0, 3).toUpperCase()}-${codeToUse.slice(3).toUpperCase()}`
-
-            const validateRoomExists = async (roomCode: string) => {
-                const response = await fetch(`${BASE_URL}/api/room/${roomCode}/status`)
-                return response.ok
-            }
-
-            const isRoom = validateRoomExists(formattedCode)
-
-            if (!isRoom) {
-                toast.error("Room Does Not Exists")
-                return
-            }
-            const responseData = await joinRoom(formattedCode)
-
-            toast.success("Joined room successfully!")
-            saveSession(formattedCode, responseData.expiresAt)
-
-            setTimeout(() => {
-                router.push(`/room/${formattedCode}`)
-            }, 1000)
-
-        } catch (error: any) {
-            console.error('Error joining room:', error)
-            toast.error(error?.message || "Failed to join room")
-        } finally {
-            setLoading(false)
-        }
+    if (name.trim().length > 50) {
+      toast.error('Name must be 50 characters or less')
+      return false
     }
-
-    const handleRejoinExisting = () => {
-        if (existingSession) {
-            router.push(`/room/${existingSession.roomCode}`)
-        }
+    const codeToValidate = isQRCodeJoin ? roomCodeParam : code
+    if (!codeToValidate || codeToValidate.length !== 6) {
+      toast.error(isQRCodeJoin ? 'Invalid QR code' : 'Room code must be 6 characters')
+      return false
     }
+    return true
+  }
 
-    const handleJoinNew = () => {
-        localStorage.removeItem('chat_room_session')
-        setExistingSession(null)
-        toast.info("Previous session cleared. Join a new room.")
+  const joinRoom = async (formattedCode: string) => {
+    const response = await fetch(`${BASE_URL}/api/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: formattedCode, name: name.trim() }),
+    })
+    const responseData = await response.json()
+    if (!response.ok) throw new Error(responseData.message || 'Failed to join room')
+    return responseData
+  }
+
+  const saveSession = (formattedCode: string, expiresAt?: string) => {
+    localStorage.setItem('chat_room_session', JSON.stringify({
+      userName: name.trim(),
+      roomCode: formattedCode,
+      joinedAt: new Date().toISOString(),
+      expiresAt,
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateInputs()) return
+    setLoading(true)
+    try {
+      const rawCode = (isQRCodeJoin ? roomCodeParam : code)!
+      const formattedCode = `${rawCode.slice(0, 3).toUpperCase()}-${rawCode.slice(3).toUpperCase()}`
+      const responseData = await joinRoom(formattedCode)
+      toast.success('Joined room successfully!')
+      saveSession(formattedCode, responseData.expiresAt)
+      router.push(`/room/${formattedCode}`)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to join room'
+      toast.error(msg)
+    } finally {
+      setLoading(false)
     }
+  }
 
-    const isSubmitDisabled = () => {
-        if (loading || !name.trim()) return true
-        return isQRCodeJoin ? !roomCode || roomCode.length !== 6 : code.length !== 6
+  const handleRejoinExisting = () => {
+    if (existingSession) router.push(`/room/${existingSession.roomCode}`)
+  }
+
+  const handleJoinNew = () => {
+    localStorage.removeItem('chat_room_session')
+    setExistingSession(null)
+    toast.info('Previous session cleared. Join a new room.')
+  }
+
+  const getTimeRemaining = (expiryDate: string) => {
+    try {
+      const diff = new Date(expiryDate).getTime() - Date.now()
+      if (diff <= 0) return 'Expired'
+      const m = Math.floor(diff / 60000)
+      const h = Math.floor(m / 60)
+      return h > 0 ? `${h}h ${m % 60}m remaining` : `${m}m remaining`
+    } catch {
+      return 'Unknown'
     }
+  }
 
-    const getTimeRemaining = (expiryDate: string) => {
-        try {
-            const now = new Date().getTime()
-            const expiry = new Date(expiryDate).getTime()
-            const diff = expiry - now
+  const isSubmitDisabled = () => {
+    if (loading || !name.trim()) return true
+    return isQRCodeJoin ? !roomCodeParam || roomCodeParam.length !== 6 : code.length !== 6
+  }
 
-            if (diff <= 0) return 'Expired'
+  return (
+    <main className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-background selection:bg-primary/20">
+      {/* ── Back ── */}
+      <div
+        className="absolute top-6 left-6 z-20"
+        style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both` }}
+      >
+        <Link href="/">
+          <Button variant="ghost" size="sm" className="active:scale-[0.97] transition-transform duration-150 ease-out-strong">
+            <IconArrowLeft className="w-4 h-4" aria-hidden="true" />
+            Back
+          </Button>
+        </Link>
+      </div>
 
-            const minutes = Math.floor(diff / 60000)
-            const hours = Math.floor(minutes / 60)
-
-            if (hours > 0) {
-                return `${hours}h ${minutes % 60}m remaining`
-            }
-            return `${minutes}m remaining`
-        } catch {
-            return 'Unknown'
-        }
-    }
-
-    return (
-        <Suspense fallback={<IconLoader2 className="animate-spin" />}>
-            <div className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
-                {/* Background Elements */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div
-                        className="absolute top-1/4 left-1/3 w-80 h-80 rounded-full bg-primary/5 blur-3xl"
-                    />
-                    <div
-                        className="absolute bottom-1/4 right-1/3 w-64 h-64 rounded-full bg-primary/3 blur-3xl"
-                    />
-                </div>
-
-                {/* Back Button */}
-                <div
-                    className="absolute top-6 left-6 z-20"
-                >
-                    <Link href="/">
-                        <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground">
-                            <IconArrowLeft className="w-4 h-4" />
-                            Back
-                        </Button>
-                    </Link>
-                </div>
-
-                {/* Main Content */}
-                <div
-                    className="relative z-10 w-full max-w-md mx-auto px-6"
-                >
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 mb-4"
-                        >
-                            {isQRCodeJoin ? (
-                                <IconQrcode className="w-7 h-7 text-primary" />
-                            ) : (
-                                <IconDoorEnter className="w-7 h-7 text-primary" />
-                            )}
-                        </div>
-                        <h1 className="text-3xl font-semibold tracking-tight mb-2" style={{ fontFamily: 'var(--font-display)' }}>
-                            Join Room
-                        </h1>
-                        <p className="text-muted-foreground text-sm">
-                            {isQRCodeJoin
-                                ? 'Enter your name to join via QR code'
-                                : 'Enter the room code to join the conversation'}
-                        </p>
-                    </div>
-
-                    {/* Existing Session Alert */}
-                    {existingSession && (
-                        <div
-                            className="mb-6"
-                        >
-                                <Alert className="border-primary/20 bg-card">
-                                    <IconAlertCircle className="h-5 w-5 text-primary" />
-                                    <AlertDescription className="ml-3">
-                                        <div className="space-y-3">
-                                            <div>
-                                                <p className="font-medium text-foreground">
-                                                    You&apos;re already in a room
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <IconHash className="w-4 h-4 text-muted-foreground" />
-                                                    <span className="font-mono font-semibold">{existingSession.roomCode}</span>
-                                                </div>
-                                                {existingSession.expiresAt && (
-                                                    <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground">
-                                                        <IconClock className="w-3.5 h-3.5" />
-                                                        {getTimeRemaining(existingSession.expiresAt)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <div className="flex-1">
-                                                    <Button
-                                                        size="sm"
-                                                        variant="default"
-                                                        onClick={handleRejoinExisting}
-                                                        className="w-full text-xs"
-                                                    >
-                                                        Return to Room
-                                                    </Button>
-                                                </div>
-                                                <div>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="secondary"
-                                                        onClick={handleJoinNew}
-                                                        className="text-xs"
-                                                    >
-                                                        Join New
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </AlertDescription>
-                                </Alert>
-                            </div>
-                        )}
-
-                    {/* Form */}
-                    <form
-                        onSubmit={handleSubmit}
-                        className="space-y-6"
-                    >
-                        {/* Room Code Field - Manual Entry */}
-                        {!isQRCodeJoin && (
-                            <div
-                                className="space-y-3"
-                            >
-                                <Label className="flex items-center gap-2 text-sm font-medium">
-                                    <IconHash className="w-4 h-4 text-muted-foreground" />
-                                    Room Code
-                                </Label>
-                                <div className="flex justify-center">
-                                    <InputOTP
-                                        value={code}
-                                        onChange={(value) => setCode(value)}
-                                        disabled={loading}
-                                        maxLength={6}
-                                        pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
-                                        type='text'
-                                        className="gap-2"
-                                    >
-                                        <InputOTPGroup>
-                                            <InputOTPSlot className="w-12 h-14 text-lg bg-card border-border/50" index={0} />
-                                            <InputOTPSlot className="w-12 h-14 text-lg bg-card border-border/50" index={1} />
-                                            <InputOTPSlot className="w-12 h-14 text-lg bg-card border-border/50" index={2} />
-                                        </InputOTPGroup>
-                                        <InputOTPSeparator className="text-muted-foreground" />
-                                        <InputOTPGroup>
-                                            <InputOTPSlot className="w-12 h-14 text-lg bg-card border-border/50" index={3} />
-                                            <InputOTPSlot className="w-12 h-14 text-lg bg-card border-border/50" index={4} />
-                                            <InputOTPSlot className="w-12 h-14 text-lg bg-card border-border/50" index={5} />
-                                        </InputOTPGroup>
-                                    </InputOTP>
-                                </div>
-                                <p className='text-xs text-muted-foreground text-center'>
-                                    Enter 6-character room code
-                                </p>
-                            </div>
-                        )}
-
-                        {/* QR Code Display */}
-                        {isQRCodeJoin && roomCode && (
-                            <div
-                                className='space-y-3'
-                            >
-                                <Label className="flex items-center gap-2 text-sm font-medium">
-                                    <IconQrcode className="w-4 h-4 text-muted-foreground" />
-                                    Room from QR
-                                </Label>
-                                <div
-                                    className="p-4 bg-card border border-border/50 rounded-xl"
-                                >
-                                    <div className="flex items-center justify-center gap-3">
-                                        <IconHash className="w-5 h-5 text-primary" />
-                                        <span className="text-xl font-mono font-semibold tracking-wider">
-                                            {roomCode.slice(0, 3).toUpperCase()}-{roomCode.slice(3).toUpperCase()}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Name Field */}
-                        <div
-                            className="space-y-2"
-                        >
-                            <Label htmlFor='name' className="flex items-center gap-2 text-sm font-medium">
-                                <IconUser className="w-4 h-4 text-muted-foreground" />
-                                Your Name
-                            </Label>
-                            <Input
-                                id='name'
-                                placeholder='Enter your display name'
-                                type='text'
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                disabled={loading}
-                                maxLength={50}
-                                className='h-12 transition-all duration-200'
-                            />
-                            <p className='text-xs text-muted-foreground'>
-                                {name.length}/50 characters
-                            </p>
-                        </div>
-
-                        {/* Submit Button */}
-                        <div
-                            className="pt-2"
-                        >
-                                <Button
-                                    type='submit'
-                                    size="lg"
-                                    className='w-full h-12 text-base font-medium gap-2'
-                                    disabled={isSubmitDisabled()}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <IconLoader className='animate-spin w-5 h-5' />
-                                            Joining...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <IconLogin className='w-5 h-5' />
-                                            Join Room
-                                        </>
-                                    )}
-                                </Button>
-                        </div>
-                    </form>
-
-                    {/* Footer Note */}
-                    <p
-                        className="text-center text-xs text-muted-foreground/60 mt-8"
-                    >
-                        Your name will be visible to other room participants
-                    </p>
-                </div>
+      {/* ── Main Content ── */}
+      <div className="relative z-10 w-full max-w-sm mx-auto px-5 py-16">
+        {/* Header */}
+        <div
+          className="text-center mb-10"
+          style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '100ms' }}
+        >
+          <div className="flex items-center justify-center mb-5">
+            <div className="p-[3px] rounded-2xl bg-primary/10">
+              <div className="flex items-center justify-center w-12 h-12 rounded-[calc(1.5rem-3px)] bg-primary text-primary-foreground">
+                {isQRCodeJoin ? (
+                  <IconQrcode className="w-6 h-6" aria-hidden="true" />
+                ) : (
+                  <IconDoorEnter className="w-6 h-6" aria-hidden="true" />
+                )}
+              </div>
             </div>
-        </Suspense>
-    )
+          </div>
+          <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold tracking-tighter leading-[1.1] text-foreground mb-2">
+            Join Room
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-[30ch] mx-auto">
+            {isQRCodeJoin
+              ? 'Enter your name to join via QR code'
+              : 'Enter the room code to join the conversation'}
+          </p>
+        </div>
+
+        {/* ── Existing Session (Double-Bezel) ── */}
+        {existingSession && (
+          <div
+            className="mb-8"
+            style={{ animation: `fade-up-heavy 800ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '150ms' }}
+          >
+            <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60">
+              <div className="rounded-[calc(1.75rem-4px)] bg-card px-5 py-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-[0.12em] mb-2">
+                  Active Session
+                </p>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <IconHash className="w-4 h-4 text-primary" aria-hidden="true" />
+                  <span className="font-mono font-semibold text-foreground">{existingSession.roomCode}</span>
+                </div>
+                {existingSession.expiresAt && (
+                  <div className="flex items-center gap-1.5 mb-3 text-xs text-muted-foreground">
+                    <IconClock className="w-3.5 h-3.5" aria-hidden="true" />
+                    {getTimeRemaining(existingSession.expiresAt)}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleRejoinExisting} className="flex-1 active:scale-[0.97] transition-transform duration-150 ease-out-strong">
+                    Return to Room
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={handleJoinNew} className="active:scale-[0.97] transition-transform duration-150 ease-out-strong">
+                    Join New
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Form ── */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+          style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: existingSession ? '250ms' : '200ms' }}
+        >
+          {/* Room Code */}
+          {!isQRCodeJoin && (
+            <div className="space-y-3">
+              <Label className="flex items-center gap-1.5 text-sm font-medium">
+                <IconHash className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+                Room Code
+              </Label>
+              <div className="flex justify-center">
+                <InputOTP
+                  value={code}
+                  onChange={setCode}
+                  disabled={loading}
+                  maxLength={6}
+                  pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                  </InputOTPGroup>
+                  <InputOTPSeparator />
+                  <InputOTPGroup>
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Enter 6-character room code
+              </p>
+            </div>
+          )}
+
+          {/* QR Code Display */}
+          {isQRCodeJoin && roomCodeParam && (
+            <div className="space-y-3">
+              <Label className="flex items-center gap-1.5 text-sm font-medium">
+                <IconQrcode className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+                Room from QR
+              </Label>
+              <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60">
+                <div className="rounded-[calc(1.75rem-4px)] bg-card px-4 py-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                  <div className="flex items-center justify-center gap-3">
+                    <IconHash className="w-5 h-5 text-primary" aria-hidden="true" />
+                    <span className="text-xl font-mono font-semibold tracking-wider text-foreground">
+                      {roomCodeParam.slice(0, 3).toUpperCase()}-{roomCodeParam.slice(3).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Name */}
+          <div className="space-y-2">
+            <Label htmlFor="name" className="flex items-center gap-1.5 text-sm font-medium">
+              <IconUser className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+              Your Name
+            </Label>
+            <Input
+              id="name"
+              placeholder="Enter your display name…"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={loading}
+              maxLength={50}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            <p className="text-xs text-muted-foreground">{name.length}/50 characters</p>
+          </div>
+
+          {/* Submit */}
+          <div className="pt-2">
+            <Button
+              type="submit"
+              disabled={isSubmitDisabled()}
+              className="group w-full active:scale-[0.97] transition-transform duration-150 ease-out-strong"
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <IconLoader className="animate-spin w-4 h-4" aria-hidden="true" />
+                  Joining…
+                </span>
+              ) : (
+                <span className="flex items-center gap-2.5">
+                  Join Room
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors duration-200">
+                    <IconLogin className="w-3 h-3" aria-hidden="true" />
+                  </span>
+                </span>
+              )}
+            </Button>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <p
+          className="text-center text-xs text-muted-foreground/50 mt-12"
+          style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '300ms' }}
+        >
+          Your name will be visible to other room participants
+        </p>
+      </div>
+    </main>
+  )
 }
 
-export default JoinPageComp
+export default function JoinPageComp() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-[100dvh] flex items-center justify-center bg-background">
+        <IconLoader2 className="animate-spin w-6 h-6 text-muted-foreground" aria-hidden="true" />
+      </main>
+    }>
+      <JoinForm />
+    </Suspense>
+  )
+}
