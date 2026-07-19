@@ -14,9 +14,11 @@ import { Message, Room, RoomInfo } from './type';
 
 function generateRoomCode(): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const array = new Uint8Array(6);
+    globalThis.crypto.getRandomValues(array);
     let code = '';
     for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+        code += chars.charAt(array[i] % chars.length);
     }
     return code.slice(0, 3) + '-' + code.slice(3);
 }
@@ -167,8 +169,7 @@ export async function getRoomInfo(roomCode: string): Promise<RoomInfo | null> {
             .from(messages)
             .where(eq(messages.roomCode, roomCode));
         realMsgCount = result.length;
-    } catch (error) {
-        // Fallback to Redis
+    } catch {
         realMsgCount = await redis.llen(`messages:${roomCode}`);
     }
 

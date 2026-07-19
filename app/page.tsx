@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   twitter: {
-    images: ["/og(1).png"],
+    images: ["/og-twitter.png"],
     card: "summary_large_image",
     title: "RoomDrop - Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",

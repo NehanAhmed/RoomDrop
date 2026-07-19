@@ -3,17 +3,11 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { IconLoader, IconMessageCircle, IconArrowUp } from '@tabler/icons-react'
-import { useState, useRef, useEffect, memo } from 'react'
+import { useState, useRef, useEffect, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { pusherClient } from '@/lib/pusher'
-
-interface Message {
-  id: string
-  userName: string
-  message: string
-  timestamp: string
-}
+import { getPusherClient } from '@/lib/pusher'
+import type { Message } from '@/lib/type'
 
 interface ChatInterfaceProps {
   roomCode: string
@@ -34,6 +28,12 @@ interface MessageItemProps {
   getInitials: (name: string) => string
 }
 
+function generateClientId(): string {
+  const arr = new Uint32Array(4)
+  crypto.getRandomValues(arr)
+  return Array.from(arr, (v) => v.toString(36)).join('').slice(0, 12)
+}
+
 const MessageItem = memo(function MessageItem({
   msg,
   index,
@@ -48,7 +48,7 @@ const MessageItem = memo(function MessageItem({
   return (
     <div
       className={`flex items-end gap-3 ${isCurrentUser ? 'flex-row-reverse' : ''}`}
-      style={{ animation: `fade-up 500ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: `${Math.min(index * 30, 300)}ms` }}
+      style={{ animation: `fade-up 500ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: `${Math.min(index * 50, 500)}ms` }}
     >
       {showAvatar ? (
         <div
@@ -103,6 +103,19 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const mountedRef = useRef(true)
   const router = useRouter()
 
+  const fetchMessages = useCallback(async () => {
+    try {
+      if (hasLoadedRef.current) return
+      hasLoadedRef.current = true
+      const res = await fetch(`/api/messages/${roomCode}`)
+      if (!res.ok) throw new Error('Failed to fetch messages')
+      const data = await res.json()
+      setMessages((data.messages as Message[]) || [])
+    } catch (error) {
+      console.error('Failed to fetch messages:', error)
+    }
+  }, [roomCode])
+
   useEffect(() => {
     const getUserSession = (): UserSession | null => {
       try {
@@ -122,26 +135,19 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
     setCurrentUser(session.userName)
     setLoading(false)
+    hasLoadedRef.current = false
     fetchMessages()
-  }, [roomCode, router])
+  }, [roomCode, router, fetchMessages])
 
   useEffect(() => {
     mountedRef.current = true
     const channelName = `chat-${roomCode}`
-    const channel = pusherClient.subscribe(channelName)
+    const channel = getPusherClient().subscribe(channelName)
 
     channel.bind('incoming-message', (newMessage: Message) => {
       if (!mountedRef.current) return
       setMessages((prev) => {
         if (prev.some((m) => m.id === newMessage.id)) return prev
-        const tempIndex = prev.findIndex(
-          (m) => m.id.startsWith('temp-') && m.userName === newMessage.userName && m.message === newMessage.message
-        )
-        if (tempIndex !== -1) {
-          const next = [...prev]
-          next[tempIndex] = newMessage
-          return next
-        }
         return [...prev, newMessage]
       })
     })
@@ -149,7 +155,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     return () => {
       mountedRef.current = false
       channel.unbind_all()
-      pusherClient.unsubscribe(channelName)
+      getPusherClient().unsubscribe(channelName)
     }
   }, [roomCode])
 
@@ -169,26 +175,12 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
   useEffect(() => { scrollToBottom() }, [messages])
 
-  const fetchMessages = async () => {
-    try {
-      if (hasLoadedRef.current) return
-      hasLoadedRef.current = true
-      const res = await fetch(`/api/messages/${roomCode}`)
-      if (!res.ok) throw new Error('Failed to fetch messages')
-      const data = await res.json()
-      setMessages((data.messages as Message[]) || [])
-    } catch (error) {
-      console.error('Failed to fetch messages:', error)
-    }
-  }
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!inputMessage.trim() || sending || !currentUser) return
+  const doSendMessage = useCallback(async (messageText: string) => {
+    if (!currentUser) return
 
     setSending(true)
-    const messageText = inputMessage.trim()
-    const tempId = `temp-${Date.now()}`
+    const clientId = generateClientId()
+    const tempId = `temp-${Date.now()}-${clientId}`
 
     try {
       setMessages((prev) => [
@@ -219,13 +211,12 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     } finally {
       setSending(false)
     }
-  }
+  }, [roomCode, currentUser])
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage(e as unknown as React.FormEvent)
-    }
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputMessage.trim() || sending || !currentUser) return
+    doSendMessage(inputMessage.trim())
   }
 
   if (loading) {
@@ -288,12 +279,17 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
       <div className="border-t border-border/60 bg-card/30 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto p-4">
-          <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+          <form onSubmit={handleSubmit} className="flex items-center gap-3">
             <div className="flex-1">
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSubmit(e)
+                  }
+                }}
                 placeholder="Type a message..."
                 disabled={sending}
                 maxLength={1000}

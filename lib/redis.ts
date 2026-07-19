@@ -1,11 +1,9 @@
-// lib/redis.ts
 import { Redis } from '@upstash/redis';
+import { getEnvOrThrow } from './env';
 
-// Create Redis client
 export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  url: getEnvOrThrow('UPSTASH_REDIS_REST_URL'),
+  token: getEnvOrThrow('UPSTASH_REDIS_REST_TOKEN'),
 });
 
-// Export type for TypeScript
 export type RedisClient = typeof redis;
