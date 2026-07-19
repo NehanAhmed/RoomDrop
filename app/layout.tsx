@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Geist_Mono, DM_Sans, Noto_Serif } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
@@ -13,15 +13,101 @@ const notoSerifHeading = Noto_Serif({ subsets: ['latin'], variable: '--font-head
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app';
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#09090b' },
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+  ],
+  colorScheme: 'dark light',
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://room-drop.vercel.app'),
-  title: 'RoomDrop - Anonymous Chat Rooms',
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: 'RoomDrop — Anonymous Chat Rooms',
+    template: '%s — RoomDrop',
+  },
   description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-snippet': -1,
+      'max-image-preview': 'large',
+      'max-video-preview': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'RoomDrop',
+    title: 'RoomDrop — Anonymous Chat Rooms',
+    description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
+    url: BASE_URL,
+    images: [
+      {
+        url: '/og.png',
+        width: 1200,
+        height: 630,
+        alt: 'RoomDrop — Anonymous Chat Rooms',
+      },
+    ],
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RoomDrop — Anonymous Chat Rooms',
+    description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
+    images: ['/og-twitter.png'],
+    creator: '@Nehanahmed988',
+  },
+  alternates: {
+    canonical: BASE_URL,
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || '',
+    // bing: process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png',
+  },
+}
+
+const webApplicationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'RoomDrop',
+  alternateName: 'RoomDrop — Anonymous Chat Rooms',
+  url: BASE_URL,
+  description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
+  applicationCategory: 'Communication',
+  operatingSystem: 'Any',
+  browserRequirements: 'JavaScript enabled',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  author: {
+    '@type': 'Person',
+    name: 'Nehan Ahmed',
+    url: 'https://github.com/NehanAhmed',
+  },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={cn(geistMono.variable, 'font-sans', dmSans.variable, notoSerifHeading.variable)} suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(webApplicationJsonLd) }}
+        />
+      </head>
       <body className="font-mono antialiased w-full min-h-screen bg-background selection:bg-primary/20">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <TooltipProvider>

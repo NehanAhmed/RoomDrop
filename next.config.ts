@@ -1,9 +1,16 @@
 import type { NextConfig } from "next";
 
+const isPreview =
+  process.env.VERCEL_ENV === "preview" ||
+  process.env.VERCEL_ENV === "development";
+
 const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+
+  poweredByHeader: false,
+  trailingSlash: false,
 
   headers: async () => [
     {
@@ -21,6 +28,14 @@ const nextConfig: NextConfig = {
           key: "Referrer-Policy",
           value: "strict-origin-when-cross-origin",
         },
+        ...(isPreview
+          ? [
+              {
+                key: "X-Robots-Tag",
+                value: "noindex, nofollow",
+              },
+            ]
+          : []),
       ],
     },
   ],

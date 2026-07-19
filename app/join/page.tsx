@@ -1,8 +1,11 @@
 import JoinPageComp from '@/components/JoinPageComponent'
 import { Metadata } from 'next'
+
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app';
+
 export const metadata: Metadata = {
-    title: 'Join Room - RoomDrop',
-    description: 'Join an existing RoomDrop room to collaborate and share ideas in real-time.',
+    title: 'Join Room — RoomDrop',
+    description: 'Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.',
     keywords: [
         'join room',
         'existing chat room',
@@ -13,9 +16,9 @@ export const metadata: Metadata = {
         'anonymous chat room'
     ],
     openGraph: {
-        title: "RoomDrop - An Easy Way to Create and Join Chat Rooms",
-        description: "Welcome to RoomDrop, your go-to platform for creating and joining chat rooms effortlessly.",
-        url: "https://room-drop.vercel.app",
+        title: "Join Room — RoomDrop",
+        description: "Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.",
+        url: `${BASE_URL}/join`,
         siteName: "RoomDrop",
         images: [
             {
@@ -31,9 +34,9 @@ export const metadata: Metadata = {
 
     twitter: {
         card: "summary_large_image",
-        title: "RoomDrop - An Easy Way to Create and Join Chat Rooms",
-        description: "Welcome to RoomDrop, your go-to platform for creating and joining chat rooms effortlessly.",
-        images: ["/og(1).png"],
+        title: "Join Room — RoomDrop",
+        description: "Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.",
+        images: ["/og-twitter.png"],
         creator: '@Nehanahmed988'
     },
     robots: {
@@ -46,21 +49,31 @@ export const metadata: Metadata = {
             "max-snippet": -1,
             "max-image-preview": "large",
             "max-video-preview": -1,
-
         },
-
     },
     alternates: {
-        canonical: 'https://roomdrop.vercel.app/join',
+        canonical: `${BASE_URL}/join`,
     }
 }
 
 
+const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL },
+        { '@type': 'ListItem', position: 2, name: 'Join Room', item: `${BASE_URL}/join` },
+    ],
+}
+
 const Page = () => {
     return (
         <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+            />
             <JoinPageComp />
-
         </>
     )
 }

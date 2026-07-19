@@ -363,7 +363,7 @@ function JoinForm() {
           className="text-center text-xs text-muted-foreground/50 mt-12"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '300ms' }}
         >
-          Your name will be visible to other room participants
+          Your name will be visible to other room participants &middot; Updated 2026
         </p>
       </div>
     </main>

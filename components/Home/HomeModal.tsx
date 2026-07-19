@@ -93,8 +93,8 @@ export default function HomeModal() {
             <br />
             <span className="text-primary">boundaries</span>
           </h1>
-          <p className="text-[0.9375rem] text-muted-foreground leading-relaxed max-w-[36ch] mx-auto">
-            Create instant, signup-free chat rooms. Share a link and start talking with complete privacy.
+          <p className="text-[0.9375rem] text-muted-foreground leading-relaxed max-w-[40ch] mx-auto">
+            RoomDrop is a private, ephemeral chat platform — create instant, signup-free chat rooms and start talking with complete privacy.
           </p>
         </div>
 
@@ -180,7 +180,7 @@ export default function HomeModal() {
           className="text-center text-xs text-muted-foreground/50 mt-12"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: session ? '500ms' : '400ms' }}
         >
-          No signup &middot; Encrypted &middot; Auto-destruct
+          No signup &middot; Encrypted &middot; Auto-destruct &middot; Updated 2026
         </p>
       </div>
     </main>

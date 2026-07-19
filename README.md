@@ -40,12 +40,14 @@ Create instant chat rooms without the hassle of signing up. Share the link and s
 ### Installation
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/yourusername/room-drop.git
 cd room-drop
 ```
 
 2. Install dependencies
+
 ```bash
 pnpm install
 ```
@@ -63,14 +65,20 @@ NEXT_PUBLIC_PUSHER_CLUSTER=your_pusher_cluster
 PUSHER_APP_ID=your_pusher_app_id
 PUSHER_SECRET=your_pusher_secret
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+# SEO / Verification (optional — for Search Console + Bing Webmaster Tools)
+NEXT_PUBLIC_GOOGLE_VERIFICATION=your-google-search-console-code
+NEXT_PUBLIC_BING_VERIFICATION=your-bing-webmaster-code
 ```
 
 4. Push database schema
+
 ```bash
 npx drizzle-kit push
 ```
 
 5. Run the development server
+
 ```bash
 pnpm dev
 ```
@@ -99,12 +107,12 @@ room-drop/
 
 ## API Routes
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/create` | Create a new room |
-| POST | `/api/join` | Join an existing room |
-| GET | `/api/messages/[roomCode]` | Get room messages |
-| POST | `/api/messages/send` | Send a message |
+| Method | Path                       | Description           |
+| ------ | -------------------------- | --------------------- |
+| POST   | `/api/create`              | Create a new room     |
+| POST   | `/api/join`                | Join an existing room |
+| GET    | `/api/messages/[roomCode]` | Get room messages     |
+| POST   | `/api/messages/send`       | Send a message        |
 
 ## Deployment
 
