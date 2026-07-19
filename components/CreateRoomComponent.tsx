@@ -138,7 +138,7 @@ export default function CreateRoomComp() {
             <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60">
               <div className="rounded-[calc(1.75rem-4px)] bg-card px-6 py-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
                 <Canvas
-                  text={`https://room-drop.vercel.app/join?by=qrcode&code=${data?.code}`}
+                  text={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app'}/join?by=qrcode&code=${data?.code}`}
                   options={{
                     errorCorrectionLevel: 'M',
                     margin: 2,
@@ -303,7 +303,7 @@ export default function CreateRoomComp() {
           className="text-center text-xs text-muted-foreground/50 mt-12"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '300ms' }}
         >
-          Rooms are automatically deleted after expiry
+          Rooms are automatically deleted after expiry &middot; Updated 2026
         </p>
       </div>
     </main>

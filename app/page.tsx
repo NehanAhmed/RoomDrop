@@ -1,8 +1,10 @@
 import HomeModal from "@/components/Home/HomeModal";
 import { Metadata } from "next";
 
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app';
+
 export const metadata: Metadata = {
-  title: "RoomDrop - Anonymous Chat Rooms",
+  title: "RoomDrop — Anonymous Chat Rooms",
   description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
   keywords: [
     'RoomDrop',
@@ -16,9 +18,9 @@ export const metadata: Metadata = {
     'secure temporary chat'
   ],
   openGraph: {
-    title: "RoomDrop - Anonymous Chat Rooms",
+    title: "RoomDrop — Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
-    url: "https://room-drop.vercel.app",
+    url: BASE_URL,
     siteName: "RoomDrop",
     images: [
       {
@@ -34,7 +36,7 @@ export const metadata: Metadata = {
   twitter: {
     images: ["/og-twitter.png"],
     card: "summary_large_image",
-    title: "RoomDrop - Anonymous Chat Rooms",
+    title: "RoomDrop — Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
     creator: '@Nehanahmed988'
   },
@@ -51,7 +53,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://room-drop.vercel.app',
+    canonical: BASE_URL,
   }
 }
 
