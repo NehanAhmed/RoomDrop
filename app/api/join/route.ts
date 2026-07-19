@@ -1,7 +1,6 @@
-import { redis } from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
-import { Room } from "../create/route";
 import { joinRoom } from "@/lib/RoomService";
+import { checkJoinRateLimit, checkBodySize } from "@/lib/rateLimit";
 
 interface JoinRoomType {
     code: string
@@ -9,11 +8,16 @@ interface JoinRoomType {
 }
 
 export async function POST(req: NextRequest) {
+    const bodyLimit = checkBodySize(req, 'join');
+    if (bodyLimit) return bodyLimit;
+
+    const rateLimit = await checkJoinRateLimit(req);
+    if (rateLimit) return rateLimit;
+
     try {
         const body = await req.json()
         const { code, name }: JoinRoomType = body
 
-        // Validation - Check if fields exist
         if (!code || !name) {
             return NextResponse.json(
                 { message: 'Room code and name are required' }, 
@@ -21,7 +25,6 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        // Validation - Check types
         if (typeof code !== 'string' || typeof name !== 'string') {
             return NextResponse.json(
                 { message: 'Invalid field types' }, 
@@ -29,7 +32,6 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        // Validation - Check code format (ABC-123)
         const codeRegex = /^[A-Z0-9]{3}-[A-Z0-9]{3}$/;
         if (!codeRegex.test(code)) {
             return NextResponse.json(
@@ -38,7 +40,6 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        // Validation - Check name length
         const trimmedName = name.trim();
         if (trimmedName.length === 0 || trimmedName.length > 50) {
             return NextResponse.json(
@@ -69,4 +70,3 @@ export async function POST(req: NextRequest) {
         );
     }
 }
-

@@ -1,5 +1,6 @@
 import { createRoom } from "@/lib/RoomService";
 import { NextRequest, NextResponse } from "next/server";
+import { checkCreateRateLimit, checkBodySize } from "@/lib/rateLimit";
 
 interface CreateRoomTypes {
     name: string
@@ -7,30 +8,17 @@ interface CreateRoomTypes {
     participantsCount: number
 }
 
-export interface Room {
-    code: string;
-    creator: string;
-    participants: string[];
-    createdAt: string;
-    expiresAt: string;
-    duration: number;
-    participantsCount: number;
-    messageCount: number;
-}
-
-export interface Message {
-    id: string;
-    user: string;
-    message: string;
-    timestamp: string;
-}
-
 export async function POST(req: NextRequest) {
+    const bodyLimit = checkBodySize(req, 'create');
+    if (bodyLimit) return bodyLimit;
+
+    const rateLimit = await checkCreateRateLimit(req);
+    if (rateLimit) return rateLimit;
+
     try {
         const body = await req.json()
         const { duration, name, participantsCount }: CreateRoomTypes = body
 
-        // Validation - Check if fields exist
         if (!name || !duration || !participantsCount) {
             return NextResponse.json(
                 { message: "All fields are required" },
@@ -38,7 +26,6 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        // Validation - Check types
         if (typeof duration !== 'number' || typeof name !== 'string' || typeof participantsCount !== 'number') {
             return NextResponse.json(
                 { message: "Invalid field types" },
@@ -46,7 +33,6 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        // Validation - Check values
         if (duration <= 0 || duration > 1440) {
             return NextResponse.json(
                 { message: "Duration must be between 1 and 1440 minutes" },
@@ -70,8 +56,7 @@ export async function POST(req: NextRequest) {
 
         const room: { roomCode: string, expiresAt: Date } = await createRoom(name.trim(), duration, participantsCount);
         const roomCode = room.roomCode;
-        const expiresAt = new Date(room.expiresAt);
-
+        const expiresAt = room.expiresAt;
 
         return NextResponse.json({
             message: 'Room Created Successfully',
@@ -86,4 +71,3 @@ export async function POST(req: NextRequest) {
         }, { status: 500 })
     }
 }
-

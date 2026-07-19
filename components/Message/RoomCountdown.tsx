@@ -20,10 +20,12 @@ interface RoomCountdownProps {
 
 export function RoomCountdown({ remainingSeconds: initialSeconds }: RoomCountdownProps) {
   const router = useRouter()
-  const [remainingSeconds, setRemainingSeconds] = useState(initialSeconds)
-  const [showExpiredDialog, setShowExpiredDialog] = useState(initialSeconds <= 0)
+  const [remainingSeconds, setRemainingSeconds] = useState(Math.max(0, initialSeconds))
+  const [showExpiredDialog, setShowExpiredDialog] = useState(() => initialSeconds <= 0)
 
   useEffect(() => {
+    if (initialSeconds <= 0) return
+
     const interval = setInterval(() => {
       setRemainingSeconds((prev) => {
         if (prev <= 1) {
@@ -35,7 +37,7 @@ export function RoomCountdown({ remainingSeconds: initialSeconds }: RoomCountdow
       })
     }, 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [initialSeconds])
 
   const formatTime = (seconds: number): string => {
     const hrs = Math.floor(seconds / 3600)

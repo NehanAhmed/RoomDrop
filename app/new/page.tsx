@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "RoomDrop - An Easy Way to Create and Join Chat Rooms",
     description: "Welcome to RoomDrop, your go-to platform for creating and joining chat rooms effortlessly.",
-    images: ["/og(1).png"],
+    images: ["/og-twitter.png"],
     creator: '@Nehanahmed988'
   },
   robots: {

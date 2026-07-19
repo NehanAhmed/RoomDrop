@@ -1,5 +1,5 @@
-// app/api/messages/send/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { checkSendMessageRateLimit, checkBodySize } from '@/lib/rateLimit';
 
 interface SendMessageRequest {
   roomCode: string;
@@ -7,20 +7,24 @@ interface SendMessageRequest {
   message: string;
 }
 
-// Force dynamic rendering and disable static optimization
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
+    const bodyLimit = checkBodySize(req, 'send');
+    if (bodyLimit) return bodyLimit;
+
+    const rateLimit = await checkSendMessageRateLimit(req);
+    if (rateLimit) return rateLimit;
+
   try {
-    // Lazy load dependencies to avoid build-time evaluation
-    const { pusherServer } = await import('@/lib/pusher');
+    const { getPusherServer } = await import('@/lib/pusher');
+    const pusherServer = getPusherServer();
     const { addMessage } = await import('@/lib/RoomService');
 
     const body: SendMessageRequest = await req.json();
     const { roomCode, userName, message } = body;
 
-    // Validation
     if (!roomCode || !userName || !message) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -42,7 +46,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Add message to Redis
     const newMessage = await addMessage(roomCode, userName, message.trim());
 
     if (!newMessage) {

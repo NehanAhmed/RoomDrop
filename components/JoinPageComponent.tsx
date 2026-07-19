@@ -138,8 +138,20 @@ function JoinForm() {
     }
   }
 
-  const handleRejoinExisting = () => {
-    if (existingSession) router.push(`/room/${existingSession.roomCode}`)
+  const handleRejoinExisting = async () => {
+    if (!existingSession) return
+    try {
+      const res = await fetch(`/api/messages/${existingSession.roomCode}`)
+      if (!res.ok) {
+        toast.error('Room has expired or no longer exists')
+        localStorage.removeItem('chat_room_session')
+        setExistingSession(null)
+        return
+      }
+      router.push(`/room/${existingSession.roomCode}`)
+    } catch {
+      toast.error('Could not verify room. Please try again.')
+    }
   }
 
   const handleJoinNew = () => {

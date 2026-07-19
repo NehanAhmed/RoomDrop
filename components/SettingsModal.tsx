@@ -87,14 +87,12 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <p className="text-xs text-muted-foreground/70">
                     Control your privacy and security settings
                   </p>
-                  <Link href="/privacy" className="block">
-                    <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted/30 transition-colors duration-200 cursor-pointer">
-                      <span className="flex items-center gap-2 text-sm">
-                        Privacy Policy
-                        <IconExternalLink className="w-3 h-3 text-muted-foreground/60" />
-                      </span>
-                    </div>
-                  </Link>
+                  <div className="flex items-center justify-between py-2 px-3 rounded-lg">
+                    <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <IconShield className="w-4 h-4" />
+                      No data stored server-side. Room data auto-deletes after expiry.
+                    </span>
+                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>

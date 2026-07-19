@@ -4,7 +4,6 @@ import ChatInterface from '@/components/Message/ChatInterface'
 import { SiteHeader } from '@/components/site-header'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { getRoomInfo, roomExists } from '@/lib/RoomService'
-import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import React from 'react'
 

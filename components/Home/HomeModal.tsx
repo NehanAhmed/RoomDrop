@@ -25,10 +25,8 @@ const features = [
   { icon: IconUsers, label: 'Private' },
 ]
 
-const subscribe = () => () => {}
-
 export default function HomeModal() {
-  const isClient = useSyncExternalStore(subscribe, () => true, () => false)
+  const isClient = useSyncExternalStore(() => () => {}, () => true, () => false)
   const [session, setSession] = useState<ActiveSession | null>(() => {
     if (typeof window === 'undefined') return null
     try {

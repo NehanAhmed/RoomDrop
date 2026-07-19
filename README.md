@@ -5,36 +5,37 @@
 Create instant chat rooms without the hassle of signing up. Share the link and start chatting with friends and family right away!
 
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://room-drop.vercel.app)
-[![Next.js](https://img.shields.io/badge/Next.js-14+-black)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16+-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 
-## ✨ Features
+## Features
 
-- **🚀 No Sign-up Required** - Jump straight into conversations without creating an account
-- **🔗 Instant Room Creation** - Generate unique room codes and share with anyone
-- **⚡ Real-time Messaging** - Lightning-fast WebSocket-powered chat
-- **🎨 Clean & Minimal UI** - Distraction-free interface for seamless communication
-- **📦 Persistent Storage** - Redis integration for message caching and room management
-- **🔒 Private Rooms** - Access controlled via unique room codes
+- **No Sign-up Required** - Jump straight into conversations without creating an account
+- **Instant Room Creation** - Generate unique room codes and share with anyone
+- **Real-time Messaging** - Powered by Pusher for instant message delivery
+- **Clean & Minimal UI** - Distraction-free interface for seamless communication
+- **Persistent Storage** - Redis + Postgres for message caching and room management
+- **Private Rooms** - Access controlled via unique room codes
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Framework:** [Next.js 14+](https://nextjs.org/) with App Router
+- **Framework:** [Next.js 16](https://nextjs.org/) with App Router
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
 - **Database:** [Neon](https://neon.tech/) (Serverless Postgres)
 - **ORM:** [Drizzle ORM](https://orm.drizzle.team/)
-- **Real-time:** WebSocket
-- **Cache/Session:** [Redis](https://redis.io/)
-- **Styling:** Tailwind CSS (assumed)
+- **Real-time:** [Pusher](https://pusher.com/)
+- **Cache/Session:** [Upstash Redis](https://upstash.com/)
+- **Styling:** Tailwind CSS v4
 - **Deployment:** [Vercel](https://vercel.com/)
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn/pnpm
-- PostgreSQL database (Neon account)
-- Redis instance (Upstash or local)
+- Node.js 18+ and pnpm
+- Neon (Postgres) database
+- Upstash Redis instance
+- Pusher app credentials
 
 ### Installation
 
@@ -46,97 +47,82 @@ cd room-drop
 
 2. Install dependencies
 ```bash
-npm install
-# or
-yarn install
-# or
 pnpm install
 ```
 
 3. Set up environment variables
 
-Create a `.env.local` file in the root directory:
+Copy `.env.example` to `.env.local` and fill in your credentials:
 
 ```env
-# Database
-DATABASE_URL=your_neon_database_url
-
-# Redis
-REDIS_URL=your_redis_url
-
-# WebSocket (if applicable)
-NEXT_PUBLIC_WS_URL=ws://localhost:3000
-
-# Optional: Node environment
-NODE_ENV=development
+DATABASE_URL=postgresql://user:password@ep-xxxx-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require
+UPSTASH_REDIS_REST_URL=https://your-region.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_upstash_token
+NEXT_PUBLIC_PUSHER_KEY=your_pusher_key
+NEXT_PUBLIC_PUSHER_CLUSTER=your_pusher_cluster
+PUSHER_APP_ID=your_pusher_app_id
+PUSHER_SECRET=your_pusher_secret
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
 4. Push database schema
 ```bash
-npm run db:push
-# or
 npx drizzle-kit push
 ```
 
 5. Run the development server
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 room-drop/
-├── app/              # Next.js app directory
+├── app/              # Next.js App Router pages and API routes
+│   ├── api/          # API route handlers
+│   ├── join/         # Join room page
+│   ├── new/          # Create room page
+│   └── room/         # Chat room page
 ├── components/       # React components
-├── lib/              # Utility functions and configurations
-├── db/               # Drizzle schema and migrations
+│   ├── ui/           # shadcn/ui primitives
+│   ├── Home/         # Home page components
+│   └── Message/      # Chat/message components
+├── lib/              # Utilities, types, and configurations
+│   └── db/           # Drizzle schema and client
+├── hooks/            # Custom React hooks
 ├── public/           # Static assets
-└── types/            # TypeScript type definitions
+└── migrations/       # Drizzle migrations
 ```
 
-## 🌐 Deployment
+## API Routes
 
-This app is optimized for deployment on [Vercel](https://vercel.com/):
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/create` | Create a new room |
+| POST | `/api/join` | Join an existing room |
+| GET | `/api/messages/[roomCode]` | Get room messages |
+| POST | `/api/messages/send` | Send a message |
+
+## Deployment
+
+Deploy on [Vercel](https://vercel.com/):
 
 1. Push your code to GitHub
 2. Import the project in Vercel
-3. Configure environment variables
+3. Configure environment variables (use Vercel Environment Variables, not .env files)
 4. Deploy
 
-## 🗺️ Roadmap
+## Roadmap
 
 - [ ] Typing indicators
 - [ ] Message reactions
 - [ ] File sharing
 - [ ] Voice messages
-- [ ] Room expiration settings
 - [ ] Custom room themes
 
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
+## License
 
 This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-
-Built with modern web technologies to provide a seamless, privacy-focused chat experience.
-
----
-
-Made with ❤️ by [Your Name](https://github.com/yourusername)

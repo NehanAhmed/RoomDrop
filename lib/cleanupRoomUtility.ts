@@ -1,10 +1,11 @@
-// lib/cleanupExpiredRooms.ts
 import { db } from '@/lib/db';
 import { rooms } from '@/lib/db/schema';
 import { lt, eq } from 'drizzle-orm';
 
+const BATCH_SIZE = 100;
+
 /**
- * Cleanup expired rooms from the database
+ * Cleanup expired rooms from the database in batches
  * Run this as a cron job or scheduled task
  */
 export async function cleanupExpiredRooms(): Promise<{
@@ -15,30 +16,37 @@ export async function cleanupExpiredRooms(): Promise<{
   let deletedCount = 0;
 
   try {
-    // Find expired rooms
-    const expiredRooms = await db
-      .select()
-      .from(rooms)
-      .where(
-        lt(rooms.expiresAt, new Date())
-      );
+    let hasMore = true;
 
-    console.log(`Found ${expiredRooms.length} expired rooms to clean up`);
+    while (hasMore) {
+      const expiredRooms = await db
+        .select({ code: rooms.code })
+        .from(rooms)
+        .where(lt(rooms.expiresAt, new Date()))
+        .limit(BATCH_SIZE);
 
-    // Delete expired rooms (cascade will handle participants and messages)
-    for (const room of expiredRooms) {
-      try {
-        await db
-          .delete(rooms)
-          .where(eq(rooms.code, room.code));
-        
-        deletedCount++;
-        console.log(`Deleted expired room: ${room.code}`);
-      } catch (error) {
-        const errorMsg = `Failed to delete room ${room.code}: ${error}`;
-        errors.push(errorMsg);
-        console.error(errorMsg);
+      if (expiredRooms.length === 0) {
+        hasMore = false;
+        break;
       }
+
+      for (const room of expiredRooms) {
+        try {
+          await db
+            .delete(rooms)
+            .where(eq(rooms.code, room.code));
+
+          deletedCount++;
+        } catch (error) {
+          const errorMsg = `Failed to delete room ${room.code}: ${error}`;
+          errors.push(errorMsg);
+          console.error(errorMsg);
+        }
+      }
+    }
+
+    if (deletedCount > 0) {
+      console.log(`Cleaned up ${deletedCount} expired rooms`);
     }
 
     return { deletedCount, errors };

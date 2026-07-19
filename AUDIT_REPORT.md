@@ -1,0 +1,209 @@
+# RoomDrop — Full Codebase Audit Report
+
+**Date:** 2026-07-19  
+**Auditor:** Senior Staff Software Engineer (adversarial review)  
+**Scope:** All 30+ source files, config, build output, and dependency tree
+
+---
+
+## Executive Summary
+
+RoomDrop is a well-structured, build-clean application with meaningful architecture decisions (Pusher for real-time, Upstash HTTP Redis for serverless, neon-http serverless driver). The build, type-check, and lint all pass. However, the audit reveals several critical and high-severity issues that must be addressed before production deployment:
+
+1. **CRITICAL — `.env` and `.env.local` committed to git with live secrets** (Pusher secret, Upstash token, database URL). The `.gitignore` pattern `.env*` is correct, but these files exist on disk and any accidental force-add or CI misconfiguration would leak credentials.
+2. **HIGH — No rate limiting on any API endpoint.** Room creation, join (code brute-force), and message sending are all unguarded. An adversary can enumerate room codes, flood rooms, and exhaust resources.
+3. **MEDIUM — Session persistence without server-side verification.** `localStorage` is the sole authority. A user can craft a fake `chat_room_session` to access any room whose code they know, with any identity.
+4. **MEDIUM — Message dedup by content match is fragile.** The join-room path has no dedup guard for double-submits, and the Pusher dedup relies on matching `temp-*` IDs and message content, which can collide.
+5. **MEDIUM — `motion` package is entirely unused** (4.7MB dependency shipped to production for nothing).
+6. **MEDIUM — Root layout missing `metadataBase`** causes Open Graph images to resolve to `localhost` on social share previews.
+7. **MEDIUM — No error boundary anywhere.** An unhandled React crash takes down the entire page.
+8. **LOW — Unused variables and dead code** (5 eslint warnings, 1 orphan component, 1 unused font).
+9. **LOW — README documents "WebSocket" and `REDIS_URL`** but the app uses Pusher and `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`.
+10. **LOW — No test framework, no CI/CD, no quality gates.**
+
+---
+
+## Severity Legend
+
+| Severity | Definition |
+|----------|------------|
+| **Critical** | Will cause data loss, credential exposure, or complete app failure in production |
+| **High** | Significant security or functional risk; exploitable or causes incorrect behavior |
+| **Medium** | Definite issue that degrades reliability, DX, or performance; should not ship as-is |
+| **Low** | Minor cleanup, documentation drift, or nice-to-have improvements |
+
+---
+
+## Findings by Category
+
+### Dependency Issues
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| D1 | **`motion` is unused** | Medium | `package.json:22` | `motion` (formerly `framer-motion`, 4.7MB) is a runtime dependency. Zero `import` or `require` of `motion` exists anywhere in the codebase. Increases bundle size and install time for no benefit. |
+| D2 | **`shadcn` should be a devDependency** | Low | `package.json:30` | `shadcn` is the CLI tool (`shadcn/ui`) and is only used for scaffolding. It has no runtime value. It should be in `devDependencies`. |
+| D3 | **`lucide-react` vs `@tabler/icons-react` inconsistency** | Low | `components.json:13` | `components.json` declares `"iconLibrary": "lucide"`, but the codebase uses `@tabler/icons-react` for almost all icons. `lucide-react` is imported in only 3 UI component files. The shadcn config is misleading. |
+| D4 | **No `.env.example` file** | Low | `.gitignore`, root | The `.gitignore` uses `.env*` which also blocks `.env.example`. There is no `.env.example` in the repo. A new developer has zero guidance on required env vars beyond the README (which is itself incorrect — see E2). |
+
+### Environment & Configuration Issues
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| E1 | **Live secrets on disk in committed-to-git files** | Critical | `.env`, `.env.local` | Both files contain live production credentials: `UPSTASH_REDIS_REST_TOKEN`, `PUSHER_SECRET`, `DATABASE_URL`. Currently gitignored, but they exist on disk. A stray `git add --force` or CI env exposure would leak these. At minimum these files should be git-crypt encrypted or the secrets rotated. |
+| E2 | **README documents wrong env vars** | Medium | `README.md:60-72` | README says vars are `DATABASE_URL`, `REDIS_URL`, `NEXT_PUBLIC_WS_URL`, `NODE_ENV`. But the app uses: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `PUSHER_APP_ID`, `NEXT_PUBLIC_PUSHER_KEY`, `PUSHER_SECRET`, `NEXT_PUBLIC_PUSHER_CLUSTER`, `NEXT_PUBLIC_BASE_URL`, `DATABASE_URL`. `REDIS_URL` is not used anywhere. `NEXT_PUBLIC_WS_URL` does not exist. |
+| E3 | **No `metadataBase` in root layout** | Medium | `app/layout.tsx:15-18` | The build warns: "metadataBase property in metadata export is not set for resolving social open graph or twitter images, using 'http://localhost:3000'". This means all `og:image` and `twitter:image` tags will use `http://localhost:3000/og.png` on social previews. |
+| E4 | **No `vercel.json`** | Low | root | README says "optimized for deployment on Vercel" but there's no `vercel.json` to configure rewrites, headers, or region settings. |
+| E5 | **`next.config.ts` is a stub** | Low | `next.config.ts:1-7` | Empty config object. No image optimization config, no redirects, no headers (e.g. CSP, rate-limiting headers), no `experimental` settings. |
+
+### Architecture / Infrastructure Risks
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| A1 | **No rate limiting on any endpoint** | High | `app/api/create/route.ts`, `app/api/join/route.ts`, `app/api/messages/send/route.ts` | All three POST endpoints are unguarded. An attacker can: (a) create infinite rooms exhausting Neon connections, (b) brute-force room codes via `/api/join` (2B combinations but no rate limit makes this feasible over hours/days), (c) send unlimited messages to a room. Since the app has no auth, IP-based rate limiting is the only defense. |
+| A2 | **No authentication — room code = sole access control** | Medium | All API routes | By design there is no auth. But practical risks: a user who knows (or guesses) a 6-character room code can join any room with any identity. Room codes are 36^6 ≈ 2.17B combinations — without rate limiting, this is enumerable. `generateRoomCode()` at `lib/RoomService.ts:15-22` uses `Math.random()`, not `crypto.randomUUID()`. `Math.random()` is not cryptographically secure. |
+| A3 | **No error boundary** | Medium | Entire app | There is zero `React.ErrorBoundary` usage. Any runtime error in any component (e.g., a localStorage `JSON.parse` failure, a Pusher connection error) will unmount the whole React tree and show a white screen. |
+| A4 | **`drizzle.config.ts` uses `dotenv` which prints distracting console noise** | Low | `drizzle.config.ts:1,4`; `lib/db/index.ts:5` | `config({ path: '.env' })` produces multiple `dotenv` marketing messages at build time (observed: "injecting env (0) from .env", "automatically audit secrets…"). This is harmless but noisy. |
+
+### Bugs & Logic Errors
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| B1 | **Message dedup in Pusher callback uses content match** | Medium | `components/Message/ChatInterface.tsx:136-145` | When a Pusher `incoming-message` arrives, the dedup logic at line 137-144 tries to find a temp message by checking `m.id.startsWith('temp-') && m.userName === newMessage.userName && m.message === newMessage.message`. If two users send the same message text simultaneously, each could match the other's temp ID, causing a duplicate or a wrong replacement. The dedup should key on a combination of `userName + message + timestamp` or use a truly unique client-generated ID. |
+| B2 | **Stale closure on `fetchMessages` in ChatInterface** | Medium | `components/Message/ChatInterface.tsx:126` | The first `useEffect` (lines 106-126) has `fetchMessages` in its body but the dependency array is `[roomCode, router]`. ESLint confirms this: `React Hook useEffect has a missing dependency: 'fetchMessages'`. If `fetchMessages` were to change (e.g., if it used state), the effect would use a stale reference. |
+| B3 | **`handleKeyDown` uses unsafe type cast** | Low | `components/Message/ChatInterface.tsx:227` | `handleSendMessage(e as unknown as React.FormEvent)` casts through `unknown`, bypassing type safety. The `e` is `React.KeyboardEvent<HTMLInputElement>`, not `React.FormEvent`. The cast works because `handleSendMessage` destructures `e.preventDefault()` and reads `e`, but if internals changed this would silently break. |
+| B4 | **Double-wrapping `expiresAt` Date** | Low | `app/api/create/route.ts:71-73` | `createRoom` returns `{ roomCode, expiresAt: Date }`. The route then does `const expiresAt = new Date(room.expiresAt)` — wrapping a Date in another Date. `new Date(dateObj)` returns the same object. Harmless but wasteful. |
+| B5 | **Room countdown shows expired dialog immediately when `remainingSeconds` is 0** | Low | `components/Message/RoomCountdown.tsx:24` | `showExpiredDialog` is initialized as `initialSeconds <= 0`. If a room has exactly 0 seconds remaining on initial load, the dialog appears immediately while the timer starts at 0. The timer also runs `setInterval` every second starting from 0, which is unnecessary. The effect should check `remainingSeconds > 0` before starting the interval. |
+| B6 | **`useSyncExternalStore` with no-op subscribe** | Low | `components/Home/HomeModal.tsx:28`, `components/ThemeToggle.tsx:10` | Both use `() => () => {}` as the subscribe function. The value never updates after the snapshot callback. This works as a hydration guard but is semantically incorrect. A simpler `useEffect` / `useState` pattern would be clearer. |
+| B7 | **`cleanupExpiredRooms` loads all expired rows into memory** | Low-Medium | `lib/cleanupRoomUtility.ts:19-24` | `db.select().from(rooms).where(lt(rooms.expiresAt, new Date()))` selects ALL expired rooms without pagination. On a busy app with thousands of expired rooms, this could exhaust memory. Should use cursor-based or limit-based batch deletion. |
+
+### Security Issues
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| S1 | **Secrets committed to git (on disk)** | Critical | `.env`, `.env.local` | Live Upstash token, Pusher secret, and Neon database URL are on disk in tracked-ignored files. If anyone ever runs `git add --force`, or if a CI pipeline loads these as artifacts, credentials are leaked. Routes to rotate: all three services. |
+| S2 | **No request body size limits** | Medium | All API routes | The API handlers parse `req.json()` without any `bodyParser` size limit. Next.js default body size limit is 1MB for JSON, but an attacker could send near-1MB payloads to `/api/messages/send` or `/api/create`, potentially causing OOM or slow DB writes. |
+| S3 | **`Math.random()` used for room code generation** | Medium | `lib/RoomService.ts:19` | `Math.random()` is not cryptographically secure. Room codes should use `crypto.randomUUID()` or `crypto.getRandomValues()`. A motivated attacker can predict future room codes if they observe the pattern. The primary concern is the `Math.random()` weakness combined with no rate limiting. |
+| S4 | **No CSRF/origin validation** | Low | All API routes | POST endpoints don't validate the `Origin` or `Referer` header. Since the app has no session cookies (only localStorage), CSRF is not a direct threat vector. However, if any future change adds cookie-based sessions, this would become a critical gap. |
+
+### Type Safety Issues
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| T1 | **Duplicate `Room` and `Message` type definitions** | Medium | `lib/type.ts` (canonical), `app/api/create/route.ts:10-26` (duplicate), `components/Message/ChatInterface.tsx:11-16` (duplicate) | Three independent definitions of `Message` and two of `Room`. The `Room` in `app/api/create/route.ts` has `participants: string[]` but the canonical `Room` in `lib/type.ts` also has `participants: string[]`. The `app/api/join/route.ts:3` imports `Room` from `../create/route`. If one is updated and others are not, types will drift silently. No runtime validation is applied when parsing Redis/API data — `JSON.parse(result) as Room` trusts the data blindly. |
+| T2 | **`process.env.*!` non-null assertions can crash at runtime** | Medium | `lib/pusher.ts:6-9,15,17`, `lib/redis.ts:6-7`, `lib/db/index.ts:6` | If any env var is missing at runtime, the `!` assertion silently passes `undefined` to the constructor. `new PusherServer({ appId: undefined, ... })` would fail with a confusing Pusher error. Should validate all required env vars at startup. |
+| T3 | **`getRoom` returns `Room` from Redis without validation** | Medium | `lib/RoomService.ts:104-108` | `JSON.parse(roomData) as Room` — if Redis returns corrupted or malicious data, the `as Room` cast provides zero runtime safety. A corrupt Redis entry could cause downstream crashes in `joinRoom`, `getRoomInfo`, etc. |
+
+### Frontend/React Issues
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| F1 | **No error boundary** | Medium | Entire app | (Duplicate from A3 — cross-reference.) |
+| F2 | **`rejoinExisting` does not re-verify room existence** | Medium | `components/JoinPageComponent.tsx:141-143` | If a user has a stale `chat_room_session` for a room that has expired, clicking "Return to Room" blindly redirects to `/room/${existingSession.roomCode}`. The `room/[roomCode]/page.tsx` server component does check `roomExists()` and redirects to `/new` if not found, but this adds an extra redirect hop and a confusing flash. |
+| F3 | **`ModalSection` component is defined but never used** | Low | `components/ModalSection.tsx` | This is a wrapping component with a dashed-border container. Zero imports across the codebase. Dead code. |
+| F4 | **`fetchMessages`: `hasLoadedRef` prevents re-fetching** | Low | `components/Message/ChatInterface.tsx:174` | If the room component remounts (e.g., user navigates away and back), `hasLoadedRef.current` is still `true` from the previous mount cycle, so messages won't be fetched again. The ref is not reset on mount. |
+| F5 | **Animation delay calculation plateaus at 300ms** | Low | `components/Message/ChatInterface.tsx:51` | `Math.min(index * 30, 300)` — for messages beyond index 10, all animations trigger at the same delay, eliminating the staggered effect. Minor UX issue. |
+
+### Dead Code / Cleanup Items
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| C1 | **`ModalSection` component — orphaned** | Low | `components/ModalSection.tsx` | Defined, zero imports, zero usage. |
+| C2 | **`Space_Grotesk` imported but unused** | Low | `app/layout.tsx:2` | Imported from `next/font/google` but not included in the `className` of the `<html>` element. The layout uses `DM_Sans` and `Noto_Serif` instead. |
+| C3 | **`redis` and `Room` imported but unused in `/api/join`** | Low | `app/api/join/route.ts:1,3` | `import { redis } from "@/lib/redis"` and `import { Room } from "../create/route"` are both dead imports. |
+| C4 | **`Metadata` imported but unused in `/room/[roomCode]`** | Low | `app/room/[roomCode]/page.tsx:7` | `import { Metadata } from 'next'` is not used in that file. |
+| C5 | **`error` binding unused in RoomService catch** | Low | `lib/RoomService.ts:170` | `catch (error)` — the `error` variable is never referenced in the catch block. |
+
+### Testing & Quality Gates
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| Q1 | **Zero tests** | High | Entire codebase | No test framework installed (`jest`, `vitest`, `playwright`, `cypress` — none in `package.json`). Zero test files exist. Every API route, every data flow, every UI component is untested. |
+| Q2 | **No CI/CD configuration** | Medium | root | No GitHub Actions, no `.github/` directory. No automated lint, type-check, or build verification in CI. |
+| Q3 | **No lint-staged / husky** | Low | root | No pre-commit hooks. Developers can commit broken code (though build/lint pass currently). |
+| Q4 | **No accessibility testing** | Low | Entire app | No `@axe-core/react` or similar a11y testing. While components use `aria-label` in some places, there's no systematic coverage. |
+
+### Documentation Mismatches (README vs. actual)
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| M1 | **README claims "WebSocket-powered" but app uses Pusher** | Medium | `README.md:15,26` | The feature list says "Lightning-fast WebSocket-powered chat" and the tech stack says "Real-time: WebSocket". The app uses Pusher (a hosted WebSocket abstraction). This is a correct implementation choice, but the README is misleading and could confuse developers. |
+| M2 | **README env vars don't match actual env vars** | Medium | `README.md:60-72` | (Duplicate from E2 — see above.) |
+| M3 | **README claims project structure has `types/` and `db/` dirs** | Low | `README.md:94-101` | The structure diagram shows `types/` and `db/` directories. `types/` does not exist. The actual structure uses `lib/type.ts` and `lib/db/`. |
+| M4 | **README roadmap items not implemented** | Low | `README.md:115-121` | Typing indicators, message reactions, file sharing, voice messages, custom room themes — none are implemented. This is fine for a roadmap, but room expiration settings are listed as "future" but are already partially implemented (duration UI + DB field + `RoomCountdown`). |
+
+### Missing/Incomplete Features
+
+| # | Title | Severity | Files | Description |
+|---|-------|----------|-------|-------------|
+| N1 | **`/privacy` page referenced but does not exist** | Medium | `components/SettingsModal.tsx:90` | The Settings modal has a "Privacy Policy" link to `/privacy`. This route does not exist in the app — it will 404. |
+| N2 | **Room status endpoint referenced in comment but not implemented** | Medium | `AGENTS.md` | The AGENTS.md notes: "POST /api/join references `/api/room/${roomCode}/status` for existence check but this route doesn't exist yet." The actual `/api/join` route does NOT reference this endpoint in code (bad documentation), but `joinRoom` in RoomService calls `getRoom` which checks Redis/DB directly. |
+| N3 | **No `isActive` toggle or cron for room cleanup** | Medium | `lib/cleanupRoomUtility.ts` | The cleanup utility exists but there's no cron job, no scheduled function, no webhook to invoke it. Expired rooms accumulate in the database forever unless manually cleaned. The `isActive` field in the schema is never used by any business logic (it's always `true` by default). |
+| N4 | **No typing indicators** | Low | Everything | Listed in README roadmap, not implemented. |
+| N5 | **No message reactions** | Low | Everything | Listed in README roadmap, not implemented. |
+| N6 | **No file/image sharing** | Low | Everything | Listed in README roadmap, not implemented. |
+| N7 | **`og(1).png` filename suggests a copy artifact** | Low | `app/page.tsx:36`, `app/new/page.tsx:37`, `public/og(1).png` | The Twitter image references `/og(1).png` — the parentheses and `(1)` suffix strongly suggest this is a duplicate/copy artifact from macOS Finder. It should be renamed to something semantic like `og-twitter.png`. |
+
+---
+
+## Build & Type-check Output
+
+| Command | Status | Output Summary |
+|---------|--------|---------------|
+| `pnpm install` | ✅ PASS | Lockfile up to date, clean install. Warnings about unapproved build scripts (esbuild, sharp, unrs-resolver). |
+| `npx tsc --noEmit` | ✅ PASS | Zero errors. |
+| `pnpm lint` | ✅ PASS | 0 errors, 6 warnings (all `@typescript-eslint/no-unused-vars` / `react-hooks/exhaustive-deps`). |
+| `pnpm build` | ✅ PASS | Compiled successfully. 10 routes generated (5 static, 5 dynamic). Warning: `metadataBase` not set. |
+| `npx drizzle-kit check` | ✅ PASS | "Everything's fine." No schema/migration drift. |
+
+---
+
+## Prioritized Action Plan
+
+### Immediate (Critical) — Ship-blocking
+
+| # | Ref | Item | Effort | Action |
+|---|-----|------|--------|--------|
+| 1 | S1 | Remove live secrets from `.env` / `.env.local` disk presence, rotate all three secrets | S | Rotate Upstash token, Pusher secret, and Neon DB URL. Add `.env` and `.env.local` to `.gitignore` (already there but confirm). Use Vercel Environment Variables in production. |
+| 2 | E3 | Set `metadataBase` in root layout | S | Add `metadataBase: new URL('https://room-drop.vercel.app')` to the root `metadata` export in `app/layout.tsx`. |
+
+### High — Must fix before public deployment
+
+| # | Ref | Item | Effort | Action |
+|---|-----|------|--------|--------|
+| 3 | A1 | Add rate limiting to all API endpoints | M | Wrap POST handlers with Vercel Rate Limiting (Upstash-based), or use middleware with `@upstash/ratelimit`. At minimum: 10 creates/hour per IP, 30 join attempts/hour per IP, 30 messages/minute per room per IP. |
+| 4 | A3 / F1 | Add React error boundary | S | Create `components/ErrorBoundary.tsx` and wrap `<Suspense>` or root layout content. |
+| 5 | Q1 | Add test framework and critical-path tests | L | Install `vitest` + `@testing-library/react`. Write tests for: room creation flow, join flow, message sending, and room expiry. |
+| 6 | D1 | Remove unused `motion` dependency | S | `pnpm remove motion` |
+| 7 | T1 | Consolidate type definitions | M | Remove duplicate `Room`/`Message` interfaces from `app/api/create/route.ts` and `components/Message/ChatInterface.tsx`. Import from `lib/type.ts` everywhere. Add Zod or Drizzle schema validation for runtime Redis/API data parsing. |
+| 8 | S2 | Add request body size limits | S | Add `export const maxDuration = 60;` or configure body-parser size limits. Or validate body size manually before `req.json()`. |
+
+### Medium — Important for reliability and security
+
+| # | Ref | Item | Effort | Action |
+|---|-----|------|--------|--------|
+| 9 | S3 | Replace `Math.random()` with `crypto.randomUUID()` | S | In `lib/RoomService.ts:19`, use `crypto.randomUUID()` or `crypto.getRandomValues()` for room code generation. |
+| 10 | B1 | Fix message dedup with client-generated IDs | S | Generate a truly unique client ID per message (e.g., `${userName}-${Date.now()}-${crypto.randomUUID().slice(0,8)}`) instead of relying on content-match dedup. |
+| 11 | M1 / M2 | Fix README documentation | S | Update README to say "Pusher" instead of "WebSocket", fix env var documentation, add `.env.example`. |
+| 12 | N1 | Implement `/privacy` page or remove link | S | Either create a static privacy page at `app/privacy/page.tsx` or remove the link from `SettingsModal.tsx:90`. |
+| 13 | T2 | Validate env vars at startup | S | Add a helper function that checks all required env vars exist and throws clear errors at build/runtime startup. |
+| 14 | F2 | Add room existence check on rejoin | S | Call `/api/room/[code]` or `roomExists` client-side before redirecting, or let the server component handle the redirect gracefully. |
+
+### Low — Cleanup and polish
+
+| # | Ref | Item | Effort | Action |
+|---|-----|------|--------|--------|
+| 15 | C1-C5 | Remove dead code | S | Remove unused imports, delete `ModalSection.tsx`, remove unused font import. |
+| 16 | B6 | Fix `useSyncExternalStore` pattern | S | Replace with simple `useEffect`/`useState` for hydration guarding. |
+| 17 | F4 | Reset `hasLoadedRef` on mount | S | Add `hasLoadedRef.current = false` in the initial `useEffect` body (or `useRef(false)` is already false on first mount, but it persists across strict-mode remounts). |
+| 18 | B3 | Fix unsafe type cast in `handleKeyDown` | S | Properly split the keydown handler and submit handler interfaces instead of casting. |
+| 19 | N3 | Wire up room cleanup cron | S | Set up a Vercel Cron Job or a scheduled serverless function that calls `cleanupExpiredRooms()` daily. |
+| 20 | N7 | Rename `og(1).png` | S | Rename to `og-twitter.png` and update references in `app/page.tsx:36` and `app/new/page.tsx:37`. |
+| 21 | D2 | Move `shadcn` to devDependencies | S | `pnpm remove shadcn && pnpm add -D shadcn` |
+| 22 | E4 | Add `vercel.json` | S | Add config for regions, headers (CSP), and rewrites if needed. |
+| 23 | B7 | Add pagination to expired room cleanup | S | Add `limit(100)` with an offset/cursor loop. |
+
+### Estimated effort summary
+
+- **S (Small):** 16 items
+- **M (Medium):** 6 items  
+- **L (Large):** 1 item
