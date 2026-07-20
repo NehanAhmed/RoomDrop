@@ -20,14 +20,6 @@ export const metadata: Metadata = {
         description: "Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.",
         url: `${BASE_URL}/join`,
         siteName: "RoomDrop",
-        images: [
-            {
-                url: "/og.png",
-                width: 1200,
-                height: 630,
-                alt: "RoomDrop Open Graph Image",
-            },
-        ],
         locale: "en_US",
         type: "website",
     },
@@ -36,7 +28,6 @@ export const metadata: Metadata = {
         card: "summary_large_image",
         title: "Join Room — RoomDrop",
         description: "Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.",
-        images: ["/og-twitter.png"],
         creator: '@Nehanahmed988'
     },
     robots: {

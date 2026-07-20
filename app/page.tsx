@@ -22,19 +22,10 @@ export const metadata: Metadata = {
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
     url: BASE_URL,
     siteName: "RoomDrop",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "RoomDrop Open Graph Image",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
   twitter: {
-    images: ["/og-twitter.png"],
     card: "summary_large_image",
     title: "RoomDrop — Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",

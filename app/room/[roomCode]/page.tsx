@@ -22,7 +22,6 @@ export async function generateMetadata({ params }: { params: Promise<{ roomCode:
       title: `Room ${roomCode} — RoomDrop`,
       description: 'Join the conversation in this anonymous chat room.',
       url: `${BASE_URL}/room/${roomCode}`,
-      images: [{ url: '/og.png', width: 1200, height: 630 }],
     },
     alternates: {
       canonical: `${BASE_URL}/room/${roomCode}`,

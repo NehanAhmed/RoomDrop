@@ -17,6 +17,7 @@
     "@tabler/icons-react": "^3.36.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.35.8",
+    "@vercel/og": "^0.11.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",

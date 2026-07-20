@@ -47,21 +47,12 @@ export const metadata: Metadata = {
     title: 'RoomDrop — Anonymous Chat Rooms',
     description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
     url: BASE_URL,
-    images: [
-      {
-        url: '/og.png',
-        width: 1200,
-        height: 630,
-        alt: 'RoomDrop — Anonymous Chat Rooms',
-      },
-    ],
     locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'RoomDrop — Anonymous Chat Rooms',
     description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
-    images: ['/og-twitter.png'],
     creator: '@Nehanahmed988',
   },
   alternates: {

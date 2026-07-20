@@ -21,14 +21,6 @@ export const metadata: Metadata = {
     description: "Set up your anonymous chat space in seconds. No signup required.",
     url: `${BASE_URL}/new`,
     siteName: "RoomDrop",
-    images: [
-      {
-        url: "/og.png",
-        width: 1200,
-        height: 630,
-        alt: "RoomDrop Open Graph Image",
-      },
-    ],
     locale: "en_US",
     type: "website",
   },
@@ -36,7 +28,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Create Room — RoomDrop",
     description: "Set up your anonymous chat space in seconds. No signup required.",
-    images: ["/og-twitter.png"],
     creator: '@Nehanahmed988'
   },
   robots: {
