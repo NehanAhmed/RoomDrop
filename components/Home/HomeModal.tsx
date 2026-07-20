@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useSyncExternalStore } from 'react'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
-  IconMessageCircle,
   IconArrowRight,
   IconUsers,
   IconClock,
@@ -68,19 +68,19 @@ export default function HomeModal() {
   return (
     <main className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-background selection:bg-primary/20">
       <div className="relative z-10 w-full max-w-sm mx-auto px-5 py-16">
-        {/* ── Logo (Double-Bezel icon) ── */}
+        {/* ── Logo ── */}
         <div
-          className="flex items-center justify-center gap-3 mb-16"
+          className="flex items-center justify-center mb-16"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both` }}
         >
-          <div className="p-[3px] rounded-2xl bg-primary/10">
-            <div className="flex items-center justify-center w-10 h-10 rounded-[calc(1rem-2px)] bg-primary text-primary-foreground">
-              <IconMessageCircle className="w-5 h-5" aria-hidden="true" />
-            </div>
-          </div>
-          <span className="text-xl font-semibold tracking-tight text-foreground">
-            RoomDrop
-          </span>
+          <Image
+            src="/colored-logo.png"
+            alt="RoomDrop"
+            width={180}
+            height={48}
+            priority
+            className="h-10 w-auto object-contain"
+          />
         </div>
 
         {/* ── Hero ── */}
