@@ -74,7 +74,7 @@ export default function HomeModal() {
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both` }}
         >
           <Image
-            src="/colored-logo.png"
+            src="/transparent-logo.png"
             alt="RoomDrop"
             width={180}
             height={48}
