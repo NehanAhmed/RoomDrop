@@ -94,7 +94,7 @@ const MessageItem = memo(function MessageItem({
 export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState('')
-  const [sending, setSending] = useState(false)
+  const sendingRef = useRef(false)
   const [currentUser, setCurrentUser] = useState<string | null>('')
   const [loading, setLoading] = useState(true)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -178,16 +178,21 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const doSendMessage = useCallback(async (messageText: string) => {
     if (!currentUser) return
 
-    setSending(true)
+    sendingRef.current = true
     const clientId = generateClientId()
     const tempId = `temp-${Date.now()}-${clientId}`
 
-    try {
-      setMessages((prev) => [
-        ...prev,
-        { id: tempId, userName: currentUser, message: messageText, timestamp: new Date().toISOString() },
-      ])
+    const optimistic: Message = {
+      id: tempId,
+      userName: currentUser,
+      message: messageText,
+      timestamp: new Date().toISOString(),
+    }
 
+    setInputMessage('')
+    setMessages((prev) => [...prev, optimistic])
+
+    try {
       const res = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -202,20 +207,25 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
       const data = await res.json()
       if (data.message) {
-        setMessages((prev) => prev.map((m) => (m.id === tempId ? (data.message as Message) : m)))
-        setInputMessage('')
+        setMessages((prev) => {
+          const serverMsg = data.message as Message
+          if (prev.some((m) => m.id === serverMsg.id)) {
+            return prev.filter((m) => m.id !== tempId)
+          }
+          return prev.map((m) => (m.id === tempId ? serverMsg : m))
+        })
       }
     } catch {
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
       toast.error('Failed to send message')
     } finally {
-      setSending(false)
+      sendingRef.current = false
     }
   }, [roomCode, currentUser])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inputMessage.trim() || sending || !currentUser) return
+    if (!inputMessage.trim() || sendingRef.current || !currentUser) return
     doSendMessage(inputMessage.trim())
   }
 
@@ -284,30 +294,19 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    handleSubmit(e)
-                  }
-                }}
                 placeholder="Type a message..."
-                disabled={sending}
                 maxLength={1000}
               />
             </div>
             <Button
               type="submit"
               size="icon"
-              disabled={!inputMessage.trim() || sending}
+              disabled={!inputMessage.trim()}
               className="active:scale-[0.92] transition-transform duration-150 ease-out-strong"
             >
-              {sending ? (
-                <IconLoader className="w-5 h-5 animate-spin" />
-              ) : (
-                <span className="inline-flex items-center justify-center w-5 h-5">
-                  <IconArrowUp className="w-5 h-5" />
-                </span>
-              )}
+              <span className="inline-flex items-center justify-center w-5 h-5">
+                <IconArrowUp className="w-5 h-5" />
+              </span>
             </Button>
           </form>
           <div className="flex items-center justify-between mt-2">
