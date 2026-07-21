@@ -311,14 +311,9 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
           </div>
           <p className="text-sm text-muted-foreground">Connecting to room...</p>
         </div>
-      <ImageViewer
-        src={viewerImage ?? ''}
-        open={!!viewerImage}
-        onClose={() => setViewerImage(null)}
-      />
-    </div>
-  )
-}
+      </div>
+    )
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -414,6 +409,12 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
           </div>
         </div>
       </div>
+
+      <ImageViewer
+        src={viewerImage ?? ''}
+        open={!!viewerImage}
+        onClose={() => setViewerImage(null)}
+      />
     </div>
   )
 }
