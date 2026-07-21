@@ -13,6 +13,7 @@ export interface Message {
     id: string;
     userName: string;
     message: string;
+    imageUrl?: string;
     timestamp: string;
 }
 

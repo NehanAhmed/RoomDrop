@@ -4,12 +4,15 @@ const requiredServerVars = [
   'UPSTASH_REDIS_REST_TOKEN',
   'PUSHER_APP_ID',
   'PUSHER_SECRET',
+  'IMAGEKIT_PRIVATE_KEY',
 ] as const
 
 const requiredClientVars = [
   'NEXT_PUBLIC_PUSHER_KEY',
   'NEXT_PUBLIC_PUSHER_CLUSTER',
   'NEXT_PUBLIC_BASE_URL',
+  'NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT',
+  'NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY',
 ] as const
 
 function missingVars(vars: readonly string[]): string[] {

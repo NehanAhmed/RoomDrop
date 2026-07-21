@@ -14,6 +14,7 @@ function createLimiter(maxRequests: number, window: Duration) {
 const createRoomLimiter = createLimiter(10, '1 h' as Duration);
 const joinRoomLimiter = createLimiter(30, '1 h' as Duration);
 const sendMessageLimiter = createLimiter(30, '1 m' as Duration);
+const uploadSignLimiter = createLimiter(60, '1 m' as Duration);
 
 function getIp(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -39,6 +40,18 @@ export async function checkJoinRateLimit(req: NextRequest): Promise<NextResponse
   if (!success) {
     return NextResponse.json(
       { message: 'Too many join attempts. Please try again later.' },
+      { status: 429 }
+    );
+  }
+  return null;
+}
+
+export async function checkUploadSignRateLimit(req: NextRequest): Promise<NextResponse | null> {
+  const ip = getIp(req);
+  const { success } = await uploadSignLimiter.limit(ip);
+  if (!success) {
+    return NextResponse.json(
+      { message: 'Too many upload requests. Please slow down.' },
       { status: 429 }
     );
   }

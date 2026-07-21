@@ -305,7 +305,8 @@ export async function leaveRoom(
 export async function addMessage(
     roomCode: string,
     userName: string,
-    messageText: string
+    messageText: string,
+    imageUrl?: string
 ): Promise<Message | null> {
     const roomTTL = await redis.ttl(`room:${roomCode}`);
     if (roomTTL <= 0) return null;
@@ -317,6 +318,7 @@ export async function addMessage(
         id: messageId,
         userName: userName,
         message: messageText,
+        imageUrl,
         timestamp,
     };
 
@@ -332,6 +334,7 @@ export async function addMessage(
             roomCode,
             userName,
             message: messageText,
+            imageUrl: imageUrl ?? null,
             timestamp: new Date(timestamp),
         });
 
@@ -384,6 +387,7 @@ export async function getMessages(
             id: msg.id,
             userName: msg.userName,
             message: msg.message,
+            imageUrl: msg.imageUrl ?? undefined,
             timestamp: msg.timestamp.toISOString(),
         }));
 

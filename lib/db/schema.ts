@@ -62,6 +62,7 @@ export const messages = pgTable(
       .references(() => rooms.code, { onDelete: 'cascade' }),
     userName: varchar('user_name', { length: 100 }).notNull(),
     message: text('message').notNull(),
+    imageUrl: text('image_url'),
     timestamp: timestamp('timestamp').notNull().defaultNow(),
   },
   (table) => [

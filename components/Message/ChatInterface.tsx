@@ -2,11 +2,14 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { IconLoader, IconMessageCircle, IconArrowUp } from '@tabler/icons-react'
+import { IconLoader, IconMessageCircle, IconArrowUp, IconPhoto, IconX } from '@tabler/icons-react'
 import { useState, useRef, useEffect, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { getPusherClient } from '@/lib/pusher'
+import { uploadToImageKit } from '@/lib/upload'
+import { AttachmentMenu } from './AttachmentMenu'
+import { ImageViewer } from '@/components/ImageViewer'
 import type { Message } from '@/lib/type'
 
 interface ChatInterfaceProps {
@@ -26,6 +29,7 @@ interface MessageItemProps {
   currentUser: string | null
   formatTime: (timestamp: string) => string
   getInitials: (name: string) => string
+  onImageClick: (url: string) => void
 }
 
 function generateClientId(): string {
@@ -41,6 +45,7 @@ const MessageItem = memo(function MessageItem({
   currentUser,
   formatTime,
   getInitials,
+  onImageClick,
 }: MessageItemProps) {
   const isCurrentUser = msg.userName === currentUser
   const showAvatar = index === 0 || messages[index - 1]?.userName !== msg.userName
@@ -76,15 +81,36 @@ const MessageItem = memo(function MessageItem({
           </div>
         )}
         <div
-          className={`px-4 py-2.5 ${
+          className={`overflow-hidden ${
             isCurrentUser
               ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-sm'
               : 'bg-card border border-border/60 rounded-2xl rounded-bl-sm'
           }`}
         >
-          <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-            {msg.message}
-          </p>
+          {msg.message && (
+            <div className="px-4 py-2.5">
+              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                {msg.message}
+              </p>
+            </div>
+          )}
+          {msg.imageUrl && (
+            <button
+              type="button"
+              onClick={() => onImageClick(msg.imageUrl!)}
+              className="block w-full group relative"
+            >
+              <img
+                src={msg.imageUrl}
+                alt="Shared image"
+                className="w-full max-h-80 object-cover cursor-pointer transition-opacity hover:opacity-90"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                <IconPhoto className="h-8 w-8 text-white drop-shadow-lg" />
+              </div>
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -94,6 +120,10 @@ const MessageItem = memo(function MessageItem({
 export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputMessage, setInputMessage] = useState('')
+  const [selectedImage, setSelectedImage] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [viewerImage, setViewerImage] = useState<string | null>(null)
   const sendingRef = useRef(false)
   const [currentUser, setCurrentUser] = useState<string | null>('')
   const [loading, setLoading] = useState(true)
@@ -169,6 +199,28 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
   }
 
+  const handleImageSelect = useCallback((file: File) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowed.includes(file.type)) {
+      toast.error('Only JPEG, PNG, GIF, and WebP images are allowed')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10MB')
+      return
+    }
+
+    setSelectedImage(file)
+    const reader = new FileReader()
+    reader.onload = () => setImagePreview(reader.result as string)
+    reader.readAsDataURL(file)
+  }, [])
+
+  const clearImageSelection = useCallback(() => {
+    setSelectedImage(null)
+    setImagePreview(null)
+  }, [])
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -177,6 +229,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
   const doSendMessage = useCallback(async (messageText: string) => {
     if (!currentUser) return
+    if (!messageText.trim() && !selectedImage) return
 
     sendingRef.current = true
     const clientId = generateClientId()
@@ -185,18 +238,31 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
     const optimistic: Message = {
       id: tempId,
       userName: currentUser,
-      message: messageText,
+      message: messageText.trim(),
+      imageUrl: imagePreview ?? undefined,
       timestamp: new Date().toISOString(),
     }
 
     setInputMessage('')
     setMessages((prev) => [...prev, optimistic])
 
+    let imageUrl: string | undefined
+
     try {
+      if (selectedImage) {
+        setIsUploading(true)
+        imageUrl = await uploadToImageKit(selectedImage)
+        setIsUploading(false)
+        clearImageSelection()
+      }
+
+      const body: Record<string, string> = { roomCode, userName: currentUser, message: messageText.trim() }
+      if (imageUrl) body.imageUrl = imageUrl
+
       const res = await fetch('/api/messages/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomCode, userName: currentUser, message: messageText }),
+        body: JSON.stringify(body),
       })
 
       if (!res.ok) {
@@ -217,15 +283,17 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
       }
     } catch {
       setMessages((prev) => prev.filter((m) => m.id !== tempId))
-      toast.error('Failed to send message')
+      toast.error('Failed to send image')
     } finally {
       sendingRef.current = false
+      setIsUploading(false)
     }
-  }, [roomCode, currentUser])
+  }, [roomCode, currentUser, selectedImage, imagePreview, clearImageSelection])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inputMessage.trim() || sendingRef.current || !currentUser) return
+    if (sendingRef.current || !currentUser) return
+    if (!inputMessage.trim() && !selectedImage) return
     doSendMessage(inputMessage.trim())
   }
 
@@ -243,9 +311,14 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
           </div>
           <p className="text-sm text-muted-foreground">Connecting to room...</p>
         </div>
-      </div>
-    )
-  }
+      <ImageViewer
+        src={viewerImage ?? ''}
+        open={!!viewerImage}
+        onClose={() => setViewerImage(null)}
+      />
+    </div>
+  )
+}
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -279,6 +352,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                   currentUser={currentUser}
                   formatTime={formatTime}
                   getInitials={getInitials}
+                  onImageClick={setViewerImage}
                 />
               ))}
               <div ref={messagesEndRef} />
@@ -289,19 +363,42 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
 
       <div className="border-t border-border/60 bg-card/30 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto p-4">
-          <form onSubmit={handleSubmit} className="flex items-center gap-3">
+          {imagePreview && (
+            <div className="relative mb-3 inline-block rounded-lg overflow-hidden border border-border/60">
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="max-h-32 w-auto object-contain"
+              />
+              <button
+                type="button"
+                onClick={clearImageSelection}
+                disabled={isUploading}
+                className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              >
+                <IconX className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+            <AttachmentMenu
+              onImageSelect={handleImageSelect}
+              disabled={isUploading}
+            />
             <div className="flex-1">
               <Input
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={isUploading ? 'Uploading image...' : 'Type a message...'}
                 maxLength={1000}
+                disabled={isUploading}
               />
             </div>
             <Button
               type="submit"
               size="icon"
-              disabled={!inputMessage.trim()}
+              disabled={(!inputMessage.trim() && !selectedImage) || isUploading}
               className="active:scale-[0.92] transition-transform duration-150 ease-out-strong"
             >
               <span className="inline-flex items-center justify-center w-5 h-5">

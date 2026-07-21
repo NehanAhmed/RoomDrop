@@ -5,6 +5,7 @@ interface SendMessageRequest {
   roomCode: string;
   userName: string;
   message: string;
+  imageUrl?: string;
 }
 
 export const dynamic = 'force-dynamic';
@@ -23,30 +24,37 @@ export async function POST(req: NextRequest) {
     const { addMessage } = await import('@/lib/RoomService');
 
     const body: SendMessageRequest = await req.json();
-    const { roomCode, userName, message } = body;
+    const { roomCode, userName, message, imageUrl } = body;
 
-    if (!roomCode || !userName || !message) {
+    if (!roomCode || !userName) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    if (message.trim().length === 0) {
+    if (!message && !imageUrl) {
+      return NextResponse.json(
+        { error: 'Message or image is required' },
+        { status: 400 }
+      );
+    }
+
+    if (message && message.trim().length === 0) {
       return NextResponse.json(
         { error: 'Message cannot be empty' },
         { status: 400 }
       );
     }
 
-    if (message.length > 1000) {
+    if (message && message.length > 1000) {
       return NextResponse.json(
         { error: 'Message too long (max 1000 characters)' },
         { status: 400 }
       );
     }
 
-    const newMessage = await addMessage(roomCode, userName, message.trim());
+    const newMessage = await addMessage(roomCode, userName, message?.trim() ?? '', imageUrl);
 
     if (!newMessage) {
       return NextResponse.json(

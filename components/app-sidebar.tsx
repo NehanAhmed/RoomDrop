@@ -1,6 +1,6 @@
 'use client'
 
-import { IconArrowLeft, IconDoorExit, IconSettings, IconUsers, IconHash } from '@tabler/icons-react'
+import { IconArrowLeft, IconDoorExit, IconSettings, IconUsers, IconHash, IconPalette } from '@tabler/icons-react'
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +15,7 @@ import { Button } from './ui/button'
 import { CopyButton } from './CopyButton'
 import { RoomInfo } from '@/lib/type'
 import { toast } from 'sonner'
-import { useState } from 'react'
+import { useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import { SettingsModal } from './SettingsModal'
 import { ThemeVariantSwitcher } from './theme-switcher'
@@ -28,16 +28,21 @@ interface UserSession {
 
 export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
   const onlineSet = new Set(roomData?.onlineUsers)
-  const [currentUser] = useState(() => {
-    if (typeof localStorage === 'undefined') return ''
-    try {
-      const stored = localStorage.getItem('chat_room_session')
-      const session: UserSession | null = stored ? JSON.parse(stored) : null
-      return session?.userName ?? ''
-    } catch {
-      return ''
-    }
-  })
+
+  const currentUser = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        const stored = localStorage.getItem('chat_room_session')
+        const session: UserSession | null = stored ? JSON.parse(stored) : null
+        return session?.userName ?? ''
+      } catch {
+        return ''
+      }
+    },
+    () => ''
+  )
+
   const [settingsOpen, setSettingsOpen] = useState(false)
   const router = useRouter()
 
@@ -104,8 +109,16 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
             </div>
 
             <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
-            <div className="mt-4">
-              <ThemeVariantSwitcher />
+            <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60 mt-4">
+              <div className="rounded-[calc(1.75rem-4px)] bg-card px-4 py-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <IconPalette className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground uppercase tracking-[0.1em]">Theme</span>
+                  </div>
+                  <ThemeVariantSwitcher />
+                </div>
+              </div>
             </div>
           </SidebarGroupContent>
         </SidebarGroup>
