@@ -306,7 +306,7 @@ function JoinForm() {
                   <div className="flex items-center justify-center gap-3">
                     <IconHash className="w-5 h-5 text-primary" aria-hidden="true" />
                     <span className="text-xl font-mono font-semibold tracking-wider text-foreground">
-                      {roomCodeParam.slice(0, 3).toUpperCase()}-{roomCodeParam.slice(3).toUpperCase()}
+                      {roomCodeParam.slice(0, 3).toUpperCase()} {roomCodeParam.slice(3).toUpperCase()}
                     </span>
                   </div>
                 </div>
