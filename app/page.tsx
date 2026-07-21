@@ -1,7 +1,7 @@
 import HomeModal from "@/components/Home/HomeModal";
 import { Metadata } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
 
 export const metadata: Metadata = {
   title: "RoomDrop — Anonymous Chat Rooms",

@@ -2,9 +2,9 @@
 > Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.
 
 ## Core pages
-- Home: https://room-drop.vercel.app/
-- Create Room: https://room-drop.vercel.app/new
-- Join Room: https://room-drop.vercel.app/join
+- Home: https://chat.nehan.site/
+- Create Room: https://chat.nehan.site/new
+- Join Room: https://chat.nehan.site/join
 
 ## Features
 - Anonymous: No signup required, no personal data stored

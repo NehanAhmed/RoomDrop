@@ -4,7 +4,7 @@
 
 Create instant chat rooms without the hassle of signing up. Share the link and start chatting with friends and family right away!
 
-[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://room-drop.vercel.app)
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://chat.nehan.site)
 [![Next.js](https://img.shields.io/badge/Next.js-16+-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 

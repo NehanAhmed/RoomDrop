@@ -30,15 +30,15 @@ The site has a solid foundation — server-rendered static pages, correct `<h1>`
 
 ### 1. Foundation & Configuration
 
-| Status | Severity | File / Location       | Issue                                                                                                                                                  | Fix                                                       |
-| ------ | -------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| ⚠️     | High     | `next.config.ts:3-27` | `poweredByHeader` not explicitly set; `trailingSlash` not configured; no `redirects()` for www/non-www or trailing-slash normalization                 | Add explicit config (see Appendix A)                      |
-| ❌     | Critical | (multi-file)          | No single source of truth for production domain — `https://room-drop.vercel.app` hardcoded in 5+ files instead of using `NEXT_PUBLIC_BASE_URL` env var | Use env var everywhere (see Appendix A)                   |
-| ✅     | —        | `next.config.ts:4-6`  | `formats: ["image/avif", "image/webp"]` correctly set                                                                                                  | —                                                         |
-| ❌     | High     | `next.config.ts`      | No preview/staging `noindex` logic — Vercel preview deployments will be indexed as duplicate content                                                   | Add `x-robots-tag` header in preview env (see Appendix A) |
-| ⚠️     | Low      | `package.json`        | `sharp` not installed — not needed currently since `next/image` is not used, but should be added before adopting `next/image`                          | `pnpm add sharp`                                          |
-| ✅     | —        | `eslint.config.mjs`   | No `ignoreDuringBuilds` or `typescript.ignoreBuildErrors` — correct                                                                                    | —                                                         |
-| ⚠️     | Medium   | `vercel.json`         | No redirect rules for URL normalization (www, trailing slash, HTTPS)                                                                                   | Add redirects to collapse to one canonical form           |
+| Status | Severity | File / Location       | Issue                                                                                                                                             | Fix                                                       |
+| ------ | -------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| ⚠️     | High     | `next.config.ts:3-27` | `poweredByHeader` not explicitly set; `trailingSlash` not configured; no `redirects()` for www/non-www or trailing-slash normalization            | Add explicit config (see Appendix A)                      |
+| ❌     | Critical | (multi-file)          | No single source of truth for production domain — `https://chat.nehan.site` hardcoded in 5+ files instead of using `NEXT_PUBLIC_BASE_URL` env var | Use env var everywhere (see Appendix A)                   |
+| ✅     | —        | `next.config.ts:4-6`  | `formats: ["image/avif", "image/webp"]` correctly set                                                                                             | —                                                         |
+| ❌     | High     | `next.config.ts`      | No preview/staging `noindex` logic — Vercel preview deployments will be indexed as duplicate content                                              | Add `x-robots-tag` header in preview env (see Appendix A) |
+| ⚠️     | Low      | `package.json`        | `sharp` not installed — not needed currently since `next/image` is not used, but should be added before adopting `next/image`                     | `pnpm add sharp`                                          |
+| ✅     | —        | `eslint.config.mjs`   | No `ignoreDuringBuilds` or `typescript.ignoreBuildErrors` — correct                                                                               | —                                                         |
+| ⚠️     | Medium   | `vercel.json`         | No redirect rules for URL normalization (www, trailing slash, HTTPS)                                                                              | Add redirects to collapse to one canonical form           |
 
 ### 2. Metadata Layer
 
@@ -47,7 +47,7 @@ The site has a solid foundation — server-rendered static pages, correct `<h1>`
 | ❌     | Critical | `app/layout.tsx:16-20`            | Root layout metadata missing: `title.template`, `openGraph`, `twitter`, `robots`, `alternates.canonical`, `verification`, `viewport` | Add complete root metadata (see Appendix B)   |
 | ✅     | —        | `app/layout.tsx:17`               | `metadataBase` correctly set                                                                                                         | —                                             |
 | ❌     | High     | `app/join/page.tsx:36`            | Broken OG image: `"/og(1).png"` does not exist in `public/` (actual file is `public/og.png`)                                         | Change to `"/og.png"`                         |
-| ❌     | High     | `app/join/page.tsx:54`            | Wrong domain in canonical: `https://roomdrop.vercel.app/join` vs actual `https://room-drop.vercel.app`                               | Fix to `https://room-drop.vercel.app/join`    |
+| ❌     | High     | `app/join/page.tsx:54`            | Wrong domain in canonical: `https://chat.nehan.site/join` vs actual `https://chat.nehan.site`                                        | Fix to `https://chat.nehan.site/join`         |
 | ❌     | Critical | `app/room/[roomCode]/page.tsx:10` | No `generateMetadata` or `export const metadata` — dynamic room pages render with only root layout defaults                          | Add async `generateMetadata` (see Appendix B) |
 | ✅     | —        | `app/page.tsx:4-56`               | Home page metadata: complete OG, Twitter, robots, canonical — correct                                                                | —                                             |
 | ✅     | —        | `app/new/page.tsx:4-57`           | Create Room metadata: complete — correct                                                                                             | —                                             |
@@ -192,9 +192,9 @@ Add a `public/llms.txt` file — an emerging (non-standard, unconfirmed as a ran
 > Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.
 
 ## Core pages
-- Home: https://room-drop.vercel.app/
-- Create Room: https://room-drop.vercel.app/new
-- Join Room: https://room-drop.vercel.app/join
+- Home: https://chat.nehan.site/
+- Create Room: https://chat.nehan.site/new
+- Join Room: https://chat.nehan.site/join
 
 ## Features
 - Anonymous: No signup required, no personal data stored
@@ -315,8 +315,8 @@ const nextConfig: NextConfig = {
       // Example: redirect www to non-www
       // {
       //   source: '/:path*',
-      //   has: [{ type: 'host', value: 'www.room-drop.vercel.app' }],
-      //   destination: 'https://room-drop.vercel.app/:path*',
+      //   has: [{ type: 'host', value: 'www.chat.nehan.site' }],
+      //   destination: 'https://chat.nehan.site/:path*',
       //   permanent: true,
       // },
     ];
@@ -345,7 +345,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_BASE_URL || "https://room-drop.vercel.app",
+    process.env.NEXT_PUBLIC_BASE_URL || "https://chat.nehan.site",
   ),
   title: {
     default: "RoomDrop — Anonymous Chat Rooms",
@@ -415,7 +415,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { roomCode } = await params;
   const BASE_URL =
-    process.env.NEXT_PUBLIC_BASE_URL || "https://room-drop.vercel.app";
+    process.env.NEXT_PUBLIC_BASE_URL || "https://chat.nehan.site";
 
   return {
     title: `Room ${roomCode}`,
@@ -452,9 +452,9 @@ Change line 54:
 
 ```ts
 // Before:
-canonical: 'https://roomdrop.vercel.app/join',
+canonical: 'https://chat.nehan.site/join',
 // After:
-canonical: 'https://room-drop.vercel.app/join',
+canonical: 'https://chat.nehan.site/join',
 ```
 
 ---
@@ -571,7 +571,7 @@ import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   const BASE_URL =
-    process.env.NEXT_PUBLIC_BASE_URL || "https://room-drop.vercel.app";
+    process.env.NEXT_PUBLIC_BASE_URL || "https://chat.nehan.site";
 
   return {
     rules: [
@@ -635,9 +635,9 @@ export default function robots(): MetadataRoute.Robots {
 > Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.
 
 ## Core pages
-- Home: https://room-drop.vercel.app/
-- Create Room: https://room-drop.vercel.app/new
-- Join Room: https://room-drop.vercel.app/join
+- Home: https://chat.nehan.site/
+- Create Room: https://chat.nehan.site/new
+- Join Room: https://chat.nehan.site/join
 
 ## Features
 - Anonymous: No signup required, no personal data stored
@@ -655,7 +655,7 @@ export default function robots(): MetadataRoute.Robots {
 import Script from 'next/script'
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site'
 
   const jsonLd = {
     '@context': 'https://schema.org',

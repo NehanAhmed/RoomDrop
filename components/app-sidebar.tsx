@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SettingsModal } from './SettingsModal'
+import { ThemeVariantSwitcher } from './theme-switcher'
 
 interface UserSession {
   userName: string
@@ -103,6 +104,9 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
             </div>
 
             <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+            <div className="mt-4">
+              <ThemeVariantSwitcher />
+            </div>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarHeader>

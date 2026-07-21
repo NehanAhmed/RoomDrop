@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app';
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
     return [
         {
             url: BASE_URL,

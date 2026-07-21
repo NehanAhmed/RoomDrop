@@ -138,7 +138,7 @@ export default async function Image() {
               textTransform: 'uppercase',
             }}
           >
-            room-drop.vercel.app
+            chat.nehan.site
           </p>
         </div>
       </div>

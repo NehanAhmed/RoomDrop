@@ -1,7 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-
+@import "./themes/theme-ocean.css";
+@import "./themes/theme-rose.css";
+@import "./themes/theme-neon.css";
+@import "./themes/theme-sunset.css";
+@import "./themes/theme-forest.css";
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

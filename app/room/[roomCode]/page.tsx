@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import React from 'react'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
 
 export async function generateMetadata({ params }: { params: Promise<{ roomCode: string }> }): Promise<Metadata> {
   const { roomCode } = await params

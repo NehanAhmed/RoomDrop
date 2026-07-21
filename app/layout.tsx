@@ -8,12 +8,13 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Suspense } from 'react'
 import { IconLoader2 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
+import { ThemeVariantProvider } from '@/components/theme-variant-provider'
 
 const notoSerifHeading = Noto_Serif({ subsets: ['latin'], variable: '--font-heading' })
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://room-drop.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -104,6 +105,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         />
       </head>
       <body className="font-mono antialiased w-full min-h-screen bg-background selection:bg-primary/20">
+      <ThemeVariantProvider>
+
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <TooltipProvider>
             <Toaster position="top-right" richColors closeButton duration={3000} />
@@ -128,6 +131,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             </ErrorBoundary>
           </TooltipProvider>
         </ThemeProvider>
+      </ThemeVariantProvider>
       </body>
     </html>
   )

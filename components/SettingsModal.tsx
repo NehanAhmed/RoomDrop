@@ -69,6 +69,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   </div>
                 </div>
               </AccordionContent>
+             
             </AccordionItem>
 
             <AccordionItem value="privacy">
