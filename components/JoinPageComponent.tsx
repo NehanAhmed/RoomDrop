@@ -42,7 +42,11 @@ function JoinForm() {
   const searchParams = useSearchParams()
 
   const by = searchParams.get('by')
-  const roomCodeParam = searchParams.get('code')
+  const rawCodeParam = searchParams.get('code')
+  const roomCodeParam = rawCodeParam ? rawCodeParam.replace(/-/g, '') : null
+  const formattedRoomCode = roomCodeParam && roomCodeParam.length === 6
+    ? `${roomCodeParam.slice(0, 3)}-${roomCodeParam.slice(3)}`.toUpperCase()
+    : null
   const isQRCodeJoin = by === 'qrcode'
   const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || ''
 
@@ -53,7 +57,7 @@ function JoinForm() {
       const session: ExistingSession = JSON.parse(raw)
 
       if (isQRCodeJoin && roomCodeParam) {
-        if (session.roomCode?.toUpperCase() === roomCodeParam.toUpperCase()) {
+        if (session.roomCode?.replace(/-/g, '').toUpperCase() === roomCodeParam.toUpperCase()) {
           toast.info('Redirecting to your active room…')
           router.push(`/room/${session.roomCode}`)
           return
@@ -306,7 +310,7 @@ function JoinForm() {
                   <div className="flex items-center justify-center gap-3">
                     <IconHash className="w-5 h-5 text-primary" aria-hidden="true" />
                     <span className="text-xl font-mono font-semibold tracking-wider text-foreground">
-                      {roomCodeParam.slice(0, 2).toUpperCase()}-{roomCodeParam.slice(4).toUpperCase()}
+                      {formattedRoomCode}
                     </span>
                   </div>
                 </div>
