@@ -57,6 +57,18 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const { getPusherServer } = await import('@/lib/pusher');
+        const pusherServer = getPusherServer();
+
+        const joinMessage = {
+            id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            userName: 'System',
+            message: `${trimmedName} joined the room`,
+            timestamp: new Date().toISOString(),
+        };
+
+        await pusherServer.trigger(`chat-${code}`, 'incoming-message', joinMessage);
+
         return NextResponse.json({
             message: "Joined the Room Successfully",
             room: result.room,
