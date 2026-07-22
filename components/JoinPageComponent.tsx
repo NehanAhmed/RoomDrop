@@ -182,204 +182,182 @@ function JoinForm() {
   }
 
   return (
-    <main className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-background selection:bg-primary/20">
-      {/* ── Back ── */}
-      <div
-        className="absolute top-6 left-6 z-20"
-        style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both` }}
-      >
-        <Link href="/">
-          <Button variant="ghost" size="sm" className="active:scale-[0.97] transition-transform duration-150 ease-out-strong">
-            <IconArrowLeft className="w-4 h-4" aria-hidden="true" />
-            Back
-          </Button>
-        </Link>
-      </div>
+    <div className="flex items-center justify-center min-h-screen  bg-background selection:bg-primary/20">
+      <main className="mx-auto  flex w-full max-w-5xl flex-1 flex-col gap-10 px-6">
+        <div className="flex items-center justify-start  border-r border-l border-t border-b border-border">
+          <div className="p-6 max-w-[60%] w-full">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <IconArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Back
+            </Link>
 
-      {/* ── Main Content ── */}
-      <div className="relative z-10 w-full max-w-sm mx-auto px-5 py-16">
-        {/* Header */}
-        <div
-          className="text-center mb-10"
-          style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '100ms' }}
-        >
-          <div className="flex items-center justify-center mb-5">
-            <div className="p-[3px] rounded-2xl bg-primary/10">
-              <div className="flex items-center justify-center w-12 h-12 rounded-[calc(1.5rem-3px)] bg-primary text-primary-foreground">
+            <div className="mt-8 flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center bg-primary/[0.08] ring-1 ring-primary/10">
                 {isQRCodeJoin ? (
-                  <IconQrcode className="w-6 h-6" aria-hidden="true" />
+                  <IconQrcode className="h-5 w-5 text-primary" aria-hidden="true" />
                 ) : (
-                  <IconDoorEnter className="w-6 h-6" aria-hidden="true" />
+                  <IconDoorEnter className="h-5 w-5 text-primary" aria-hidden="true" />
                 )}
               </div>
-            </div>
-          </div>
-          <h1 className="text-[clamp(1.75rem,4vw,2.5rem)] font-semibold tracking-tighter leading-[1.1] text-foreground mb-2">
-            Join Room
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-[30ch] mx-auto">
-            {isQRCodeJoin
-              ? 'Enter your name to join via QR code'
-              : 'Enter the room code to join the conversation'}
-          </p>
-        </div>
-
-        {/* ── Existing Session (Double-Bezel) ── */}
-        {existingSession && (
-          <div
-            className="mb-8"
-            style={{ animation: `fade-up-heavy 800ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '150ms' }}
-          >
-            <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60">
-              <div className="rounded-[calc(1.75rem-4px)] bg-card px-5 py-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-[0.12em] mb-2">
-                  Active Session
+              <div>
+                <h1 className="font-heading text-4xl tracking-wide text-foreground">
+                  Join Room
+                </h1>
+                <p className="font-sans text-sm text-muted-foreground">
+                  {isQRCodeJoin
+                    ? 'Enter your name to join via QR code'
+                    : 'Enter the room code to join the conversation'}
                 </p>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <IconHash className="w-4 h-4 text-primary" aria-hidden="true" />
+              </div>
+            </div>
+
+            {existingSession && (
+              <div className="mt-8 max-w-sm border border-border/60 bg-card p-5 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+                  </span>
+                  <span className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+                    Active Room
+                  </span>
+                </div>
+                <div className="mt-2 flex items-center gap-2">
+                  <IconHash className="h-4 w-4 text-primary" aria-hidden="true" />
                   <span className="font-mono font-semibold text-foreground">{existingSession.roomCode}</span>
                 </div>
                 {existingSession.expiresAt && (
-                  <div className="flex items-center gap-1.5 mb-3 text-xs text-muted-foreground">
-                    <IconClock className="w-3.5 h-3.5" aria-hidden="true" />
+                  <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <IconClock className="h-3.5 w-3.5" aria-hidden="true" />
                     {getTimeRemaining(existingSession.expiresAt)}
                   </div>
                 )}
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={handleRejoinExisting} className="flex-1 active:scale-[0.97] transition-transform duration-150 ease-out-strong">
+                <div className="mt-4 flex gap-2">
+                  <Button size="sm" onClick={handleRejoinExisting} className="flex-1">
                     Return to Room
                   </Button>
-                  <Button size="sm" variant="secondary" onClick={handleJoinNew} className="active:scale-[0.97] transition-transform duration-150 ease-out-strong">
+                  <Button size="sm" variant="secondary" onClick={handleJoinNew}>
                     Join New
                   </Button>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* ── Form ── */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5"
-          style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: existingSession ? '250ms' : '200ms' }}
-        >
-          {/* Room Code */}
-          {!isQRCodeJoin && (
-            <div className="space-y-3">
-              <Label className="flex items-center gap-1.5 text-sm font-medium">
-                <IconHash className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
-                Room Code
-              </Label>
-              <div className="flex justify-center">
-                <InputOTP
-                  value={code}
-                  onChange={setCode}
-                  disabled={loading}
-                  maxLength={6}
-                  pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                  </InputOTPGroup>
-                  <InputOTPSeparator />
-                  <InputOTPGroup>
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                Enter 6-character room code
-              </p>
-            </div>
-          )}
+            <form onSubmit={handleSubmit} className="mt-8 max-w-md space-y-5">
+              {!isQRCodeJoin && (
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-1.5 font-sans text-sm font-medium">
+                    <IconHash className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                    Room Code
+                  </Label>
+                  <div className="flex justify-center">
+                    <InputOTP
+                      value={code}
+                      onChange={setCode}
+                      disabled={loading}
+                      maxLength={6}
+                      pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                      </InputOTPGroup>
+                      <InputOTPSeparator />
+                      <InputOTPGroup>
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                  <p className="text-center font-sans text-xs text-muted-foreground">
+                    Enter 6-character room code
+                  </p>
+                </div>
+              )}
 
-          {/* QR Code Display */}
-          {isQRCodeJoin && roomCodeParam && (
-            <div className="space-y-3">
-              <Label className="flex items-center gap-1.5 text-sm font-medium">
-                <IconQrcode className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
-                Room from QR
-              </Label>
-              <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60">
-                <div className="rounded-[calc(1.75rem-4px)] bg-card px-4 py-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                  <div className="flex items-center justify-center gap-3">
-                    <IconHash className="w-5 h-5 text-primary" aria-hidden="true" />
-                    <span className="text-xl font-mono font-semibold tracking-wider text-foreground">
-                      {formattedRoomCode}
-                    </span>
+              {isQRCodeJoin && roomCodeParam && (
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-1.5 font-sans text-sm font-medium">
+                    <IconQrcode className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                    Room from QR
+                  </Label>
+                  <div className="border border-border bg-card p-4">
+                    <div className="flex items-center justify-center gap-3">
+                      <IconHash className="h-5 w-5 text-primary" aria-hidden="true" />
+                      <span className="font-mono text-xl font-semibold tracking-wider text-foreground">
+                        {formattedRoomCode}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="flex items-center gap-1.5 text-sm font-medium">
-              <IconUser className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
-              Your Name
-            </Label>
-            <Input
-              id="name"
-              placeholder="Enter your display name…"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={loading}
-              maxLength={50}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <p className="text-xs text-muted-foreground">{name.length}/50 characters</p>
-          </div>
-
-          {/* Submit */}
-          <div className="pt-2">
-            <Button
-              type="submit"
-              disabled={isSubmitDisabled()}
-              className="group w-full active:scale-[0.97] transition-transform duration-150 ease-out-strong"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <IconLoader className="animate-spin w-4 h-4" aria-hidden="true" />
-                  Joining…
-                </span>
-              ) : (
-                <span className="flex items-center gap-2.5">
-                  Join Room
-                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors duration-200">
-                    <IconLogin className="w-3 h-3" aria-hidden="true" />
-                  </span>
-                </span>
               )}
-            </Button>
-          </div>
-        </form>
 
-        {/* Footer */}
-        <p
-          className="text-center text-xs text-muted-foreground/50 mt-12"
-          style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '300ms' }}
-        >
+              <div className="space-y-2">
+                <Label htmlFor="name" className="flex items-center gap-1.5 font-sans text-sm font-medium">
+                  <IconUser className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                  Your Name
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="Enter your display name…"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={loading}
+                  maxLength={50}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+                <p className="font-sans text-xs text-muted-foreground">{name.length}/50 characters</p>
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isSubmitDisabled()}
+                  className="group w-full"
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <IconLoader className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      Joining…
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2.5">
+                      Join Room
+                      <span className="flex h-5 w-5 items-center justify-center bg-white/15 transition-colors group-hover:bg-white/25">
+                        <IconLogin className="h-3 w-3" aria-hidden="true" />
+                      </span>
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </div>
+          <div>
+                  {/* <h1>hello</h1> */}
+          </div>
+        </div>
+
+        <p className="font-sans py-8 text-center text-xs text-muted-foreground/50">
           Your name will be visible to other room participants &middot; Updated 2026
         </p>
-      </div>
-    </main>
+      </main>
+    </div>
   )
 }
 
 export default function JoinPageComp() {
   return (
     <Suspense fallback={
-      <main className="min-h-[100dvh] flex items-center justify-center bg-background">
-        <IconLoader2 className="animate-spin w-6 h-6 text-muted-foreground" aria-hidden="true" />
-      </main>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <IconLoader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden="true" />
+      </div>
     }>
       <JoinForm />
     </Suspense>

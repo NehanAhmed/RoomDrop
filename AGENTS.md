@@ -1,77 +1,86 @@
 # RoomDrop — Agent Guide
 
-## Quick start
+## Commands
 
 ```bash
-pnpm dev        # local dev at http://localhost:3000
-pnpm build      # production build
-pnpm lint       # ESLint (Next.js core-web-vitals + typescript configs)
-pnpm test       # vitest run
-pnpm start      # production serve
+pnpm dev          # local dev at http://localhost:3000
+pnpm build        # production build (CI runs lint → build → test)
+pnpm lint         # ESLint 9 (next/core-web-vitals + typescript configs)
+pnpm test         # vitest run
+pnpm test:watch   # vitest (watch mode)
+pnpm start        # production serve
 ```
 
-Uses `pnpm` (lockfile: `pnpm-lock.yaml`). Typecheck via `tsc --noEmit -p tsconfig.json`. DB push via `npx drizzle-kit push`.
+Typecheck: `tsc --noEmit -p tsconfig.json`. DB push: `npx drizzle-kit push`. Uses `pnpm` (lockfile: `pnpm-lock.yaml`).
 
-## Tech & quirks
-
-- **Next.js 16** App Router. Path alias: `@/*` → root.
-- **Tailwind v4** via `@tailwindcss/postcss` + **shadcn/ui** (style `base-mira`, icon library `tabler`).
-- **Fonts**: Space Grotesk (sans, var `--font-sans`), Geist Mono (mono, var `--font-geist-mono`). Loaded from `next/font/google`.
-- **Theme**: `next-themes`, default `dark`, `enableSystem={false}`. Toggle via `Tabs` (light/dark/system).
-- **DB**: Neon (serverless Postgres) + Drizzle ORM. Schema at `lib/db/schema.ts`. Migrations in `migrations/`. Push schema: `npx drizzle-kit push`.
-- **Cache**: Upstash Redis via `@upstash/redis` (reads `.env` for `UPSTASH_REDIS_REST_URL` / `TOKEN`).
-- **Real-time**: Pusher (`pusher` server + `pusher-js` client). Channel: `chat-${roomCode}`, event: `incoming-message`.
-- **Rate limiting**: `@upstash/ratelimit` — 10 room creates/h, 30 joins/h, 30 messages/min per IP. Wired into all POST routes.
-- **Env validation**: `lib/env.ts` throws at startup if any required var is missing. Optional vars: `NEXT_PUBLIC_GOOGLE_VERIFICATION`, `NEXT_PUBLIC_BING_VERIFICATION` (for Search Console / Bing Webmaster Tools metadata).
-- **Animations**: `motion/react` (formerly framer-motion). Local skills at `.agents/skills/motion/`, `.agents/skills/frontend-design/`.
-- **DB client**: loads `.env` (not `.env.local`) via `dotenv` in `lib/db/index.ts`. `Drizzle` neon-http driver.
+**Pre-commit** (husky): runs `pnpm lint-staged` → `eslint --fix` on `*.{ts,tsx}` + `prettier --write` on `*.{json,md}`.
 
 ## Architecture
 
-- **Signup-less chat**: Create room → get `XXX-XXX` code → share → others join by code or QR.
-- **Session**: Stored in `localStorage` as `chat_room_session` (userName, roomCode, joinedAt, expiresAt). Checked on every page.
-- **Data flow**: Redis (fast, TTL-bound) → DB (persistence fallback). `RoomService.ts` is the business logic layer.
-- **Messages**: Optimistic insert with client-generated IDs (`${userName}-${Date.now()}-${crypto.randomUUID().slice(0,8)}`). Server responds with real message, replaces via dedup by ID.
-- **Expiry**: Rooms auto-delete from DB (cascade deletes participants + messages). Cron endpoint at `/api/cron/cleanup` (Vercel Cron ready).
-- **Error handling**: `ErrorBoundary` wraps root layout. `checkBodySize()` guard on all POST routes (10KB/10KB/100KB).
-- **CI/CD**: GitHub Actions runs lint → build → test on push/PR. Husky pre-commit hook runs lint-staged.`.lintstagedrc.json` runs `eslint --fix` then `tsc --noEmit -p tsconfig.json` on staged ts/tsx files.
-- **SEO**: Full metadata layer (viewport, OG, Twitter, robots, canonical, verification). JSON-LD structured data (WebApplication + BreadcrumbList). AI-crawler-specific robots.txt. PWA manifest. Custom 404/500 pages. `llms.txt` for AI crawler guidance. `sharp` installed for image optimization.
-
-## Pages & routes
-
-| Path               | Component                 | Notes                                                          |
-| ------------------ | ------------------------- | -------------------------------------------------------------- |
-| `/`                | `Home/HomeModal.tsx`      | Shows active session if exists                                 |
-| `/new`             | `CreateRoomComponent.tsx` | POST to `/api/create`                                          |
-| `/join`            | `JoinPageComponent.tsx`   | Supports `?by=qrcode&code=XXX`                                 |
-| `/room/[roomCode]` | `ChatInterface.tsx`       | Server checks room exists, client reads user from localStorage |
-
-| API                        | Method | Body                                    | Rate limit       |
-| -------------------------- | ------ | --------------------------------------- | ---------------- |
-| `/api/create`              | POST   | `{ name, duration, participantsCount }` | 10/h per IP      |
-| `/api/join`                | POST   | `{ code, name }`                        | 30/h per IP      |
-| `/api/messages/[roomCode]` | GET    | —                                       | None             |
-| `/api/messages/send`       | POST   | `{ roomCode, userName, message }`       | 30/min per IP    |
-| `/api/cron/cleanup`        | GET    | —                                       | CRON_SECRET auth |
+- **Next.js 16** App Router. Path alias `@/*` → root.
+- **Tailwind v4** via `@tailwindcss/postcss` + **shadcn/ui** (`base-nova` style, `tabler` icon library).
+- **Fonts**: DM Sans (`--font-sans`), Noto Serif (`--font-heading`), Geist Mono (`--font-geist-mono`). All from `next/font/google`.
+- **Theme**: `next-themes` (dark default, `enableSystem={false}`). Toggle via `Tabs` (light/dark/system). Room-specific **theme variants** (`ocean`, `rose`, `neon`, `sunset`, `forest`) stored in `localStorage` key `roomdrop-theme` — applied as `.theme-{id}` class on `<html>`.
+- **DB**: Neon (serverless Postgres) + Drizzle ORM (`neon-http` driver). Schema: `lib/db/schema.ts`. Migrations: `migrations/`.
+  - Config loads `.env` (not `.env.local`) via `dotenv` at `lib/db/index.ts:6`.
+  - All routes in `lib/RoomService.ts` use **Redis-first, DB-fallback** pattern.
+- **Redis**: Upstash via `@upstash/redis` (reads `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` from env).
+- **Real-time**: Pusher. Channel: `chat-${roomCode}`, event: `incoming-message`.
+- **Rate limiting**: `@upstash/ratelimit` — 10 room creates/h, 30 joins/h, 30 messages/min, 60 upload signs/min per IP.
+- **Env validation**: `lib/env.ts` warns on startup if vars missing (does not throw).
+- **Image upload**: ImageKit (client-side via `@imagekit/next`). Auth endpoint: `GET /api/upload/sign` (rate-limited). Files: ≤10MB, JPEG/PNG/GIF/WebP only.
+- **Animations**: `motion/react` (formerly framer-motion). Custom CSS transitions: `ease-out-strong` (`cubic-bezier(0.32, 0.72, 0, 1)`), `ease-in-out-strong` (`cubic-bezier(0.77, 0, 0.175, 1)`). Also uses `tw-animate-css`.
 
 ## DB schema (3 tables)
 
-`rooms` (code PK, creator, duration, participantsCount, expiresAt, isActive) → `participants` (roomCode FK, userName, isOnline) → `messages` (roomCode FK, userName, message, timestamp). All FK cascade on delete. Room code format: `XXX-XXX` (6 alphanum chars from crypto.getRandomValues).
+`rooms` (id UUID PK, code `XXX-XXX` unique, creator, duration, participantsCount, messageCount, expiresAt, isActive) → `participants` (uuid PK, roomCode FK, userName, isOnline, lastSeenAt) → `messages` (uuid PK, roomCode FK, userName, message, imageUrl?, timestamp). All FK cascade on delete. Indices on code, expiresAt, roomCode, timestamp.
 
-## Style conventions
+## Pages & API
+
+| Path               | Component                 | Notes                                                            |
+| ------------------ | ------------------------- | ---------------------------------------------------------------- |
+| `/`                | `Home/HomeModal.tsx`      | Shows active session if exists                                   |
+| `/new`             | `CreateRoomComponent.tsx` | POST to `/api/create` (duration: 1–1440 min, participants: 2–50) |
+| `/join`            | `JoinPageComponent.tsx`   | Supports `?by=qrcode&code=XXX`                                   |
+| `/room/[roomCode]` | `ChatInterface.tsx`       | Server checks room exists; client reads user from localStorage   |
+
+| API                        | Method | Body                                         | Limit        |
+| -------------------------- | ------ | -------------------------------------------- | ------------ |
+| `/api/create`              | POST   | `{ name, duration, participantsCount }`      | 10/h         |
+| `/api/join`                | POST   | `{ code, name }`                             | 30/h         |
+| `/api/messages/[roomCode]` | GET    | — (returns last 100)                         | —            |
+| `/api/messages/send`       | POST   | `{ roomCode, userName, message, imageUrl? }` | 30/min       |
+| `/api/upload/sign`         | GET    | — (returns ImageKit auth token)              | 60/min       |
+| `/api/cron/cleanup`        | GET    | — (optional CRON_SECRET auth)                | cron trigger |
+
+All POST routes have `checkBodySize()` guard: 10KB create/join, 100KB send (returns 413). Rate limits return 429.
+
+## Key conventions
 
 - `'use client'` on all interactive components. Server components for data-fetching pages.
-- `cn()` utility (`clsx` + `tailwind-merge`) from `@/lib/utils`.
-- Icons from `@tabler/icons-react`.
-- shadcn/ui components in `components/ui/`.
-- Toast via `sonner` (configured top-right, richColors, 3s in layout).
-- **Vitest** for tests, no other test framework installed.
+- `cn()` from `@/lib/utils` (`clsx` + `tailwind-merge`). Icons from `@tabler/icons-react`.
+- shadcn/ui primitives in `components/ui/`. Toast via `sonner` (top-right, richColors, 3s).
+- **Session**: `localStorage` key `chat_room_session` (`{ userName, roomCode, joinedAt }`). Fallback to `sessionStorage`.
+- **Message flow (client)**: generate temp ID (`temp-${Date.now()}-${cryptoRandom}`, 12 chars). Optimistic insert. Server responds via Pusher; dedup by ID. Max 1000 chars per message.
+- **Message flow (server)**: server ID `${Date.now()}-${Math.random().toString(36)....}`. Redis list key `messages:${roomCode}`, trim to 100.
+- **Error handling**: `ErrorBoundary` class component wraps root layout.
+- **Custom `ease-out-strong`** used extensively on interactive elements (`active:scale-[0.92]` pattern).
+- **Test**: Vitest, jsdom env, single test file `lib/__tests__/RoomService.test.ts`. Setup: `lib/test-setup.ts` (jest-dom matchers).
 
-## Code Writing
+## Dependencies to know
 
-- When you have to write code you have to think like a high level engineer and developer. Think like Linus Torvalds and Andrej Karpathy. Think the best approach to a problem. Find the best and easiest code implementation of that problem. Do not break anything and do no break anything and do not touch anything out of the scope in the instructions.
-- Write a high level professional code and think like a high level dev. Write production ready code. Do no leave anything at boilerplate and follow modern design principles and modern code solution. Do not write code that breaks current code functionality.
+- `React 19.2`, `Next.js 16.0.10`, `TypeScript ^5`, `Node ^20` (CI).
+- `motion ^12`, `next-themes ^0.4`, `drizzle-orm ^0.45`, `@upstash/redis ^1.35`, `pusher-js ^8.4`.
+- `sharp` installed (required by `next/image`). `lucide-react` used in `theme-switcher.tsx` only.
+- `shadcn` CLI (`^4.13`) installed as devDep for component management. Backed by `@base-ui/react` primitives.
+- `@imagekit/next` for server (`getUploadAuthParams`) + client (`upload`). ImageKit folder: `/roomdrop`.
+- `input-otp` for OTP input in join page. `next-qrcode` for QR display.
+- `@vercel/og` for dynamic OG/Twitter image generation (`app/opengraph-image.tsx`, `app/twitter-image.tsx`).
 
-## Code Planning
+## Design Guide
 
-When planning you have to follow the high level approach. Think like Linus Torvalds and Andrej Karpathy and find the best solution to the problem. Find its setback and check if it would cause any problem. follow the architecture of the application always.
+- Use Shadcn/UI Components Strictly for designing.
+- Do no Alter the Shadcn/UI components unless told to.
+- Do not apply costum styling to the Shadcn/UI Components e.g: 'rounded-xl bg-black'. Leave them as is becuase the Components follow the global.css stylings.
+- use tailwindcss theme colors strictly.e.g No -> "bg-black color-red" Yes -> "bg-primary"
+- No Gradients and Funky Backgrounds colors. No cheap Animations.

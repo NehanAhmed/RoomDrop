@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist_Mono, DM_Sans, Noto_Serif } from 'next/font/google'
+import { Nunito_Sans, Bebas_Neue } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -10,9 +10,8 @@ import { IconLoader2 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { ThemeVariantProvider } from '@/components/theme-variant-provider'
 
-const notoSerifHeading = Noto_Serif({ subsets: ['latin'], variable: '--font-heading' })
-const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
-const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
+const bebasNeueHeading = Bebas_Neue({subsets:['latin'],weight:'400',variable:'--font-heading'})
+const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'})
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
 
@@ -97,14 +96,14 @@ const webApplicationJsonLd = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={cn(geistMono.variable, 'font-sans', dmSans.variable, notoSerifHeading.variable)} suppressHydrationWarning>
+    <html lang="en" className={cn(nunitoSans.variable, bebasNeueHeading.variable)} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webApplicationJsonLd) }}
         />
       </head>
-      <body className="font-mono antialiased w-full min-h-screen bg-background selection:bg-primary/20">
+      <body className="antialiased w-full min-h-screen bg-background selection:bg-primary/20">
       <ThemeVariantProvider>
 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>

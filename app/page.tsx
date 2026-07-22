@@ -1,4 +1,4 @@
-import HomeModal from "@/components/Home/HomeModal";
+import { HomePage } from "@/components/Home/HomePage";
 import { Metadata } from "next";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
@@ -49,9 +49,5 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return (
-    <main className="w-full min-h-screen bg-background">
-      <HomeModal />
-    </main>
-  )
+  return <HomePage />
 }
