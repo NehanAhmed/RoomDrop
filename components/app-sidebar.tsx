@@ -65,30 +65,26 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
 
         <SidebarGroup>
           <SidebarGroupLabel>
-            Room
+            <span className="font-heading text-xs tracking-wider uppercase">Room</span>
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            {/* Room Code Card — Double-Bezel */}
-            <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60 mb-3">
-              <div className="rounded-[calc(1.75rem-4px)] bg-card px-4 py-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                <div className="flex items-center gap-2 mb-2">
-                  <IconHash className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground uppercase tracking-[0.1em]">Room Code</span>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-lg font-mono font-semibold tracking-wider text-foreground">
-                    {roomData?.code}
-                  </span>
-                  <CopyButton
-                    variant="ghost"
-                    textToCopy={roomData?.code || ''}
-                    onCopySuccess={() => toast.success('Room code copied!')}
-                  />
-                </div>
+            <div className="border border-border bg-card px-4 py-3 mb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <IconHash className="w-4 h-4 text-muted-foreground" />
+                <span className="font-heading text-xs tracking-wider uppercase text-muted-foreground">Room Code</span>
+              </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-heading text-lg font-semibold tracking-wide text-foreground">
+                  {roomData?.code}
+                </span>
+                <CopyButton
+                  variant="ghost"
+                  textToCopy={roomData?.code || ''}
+                  onCopySuccess={() => toast.success('Room code copied!')}
+                />
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="space-y-2 w-full">
               <Button
                 variant="destructive"
@@ -109,15 +105,13 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
             </div>
 
             <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
-            <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60 mt-4">
-              <div className="rounded-[calc(1.75rem-4px)] bg-card px-4 py-3 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <IconPalette className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground uppercase tracking-[0.1em]">Theme</span>
-                  </div>
-                  <ThemeVariantSwitcher />
+            <div className="border border-border bg-card px-4 py-3 mt-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <IconPalette className="w-4 h-4 text-muted-foreground" />
+                  <span className="font-heading text-xs tracking-wider uppercase text-muted-foreground">Theme</span>
                 </div>
+                <ThemeVariantSwitcher />
               </div>
             </div>
           </SidebarGroupContent>
@@ -128,7 +122,7 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
         <SidebarGroup>
           <SidebarGroupLabel>
             <IconUsers className="w-4 h-4" />
-            Participants ({roomData?.participants.length ?? 0})
+            <span className="font-heading text-xs tracking-wider uppercase ml-2">Participants ({roomData?.participants.length ?? 0})</span>
           </SidebarGroupLabel>
           <SidebarGroupContent>
             {roomData?.participants.map((user) => {
@@ -137,26 +131,26 @@ export function AppSidebar({ roomData }: { roomData: RoomInfo | null }) {
               return (
                 <div
                   key={user}
-                  className="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-muted/30 transition-colors duration-200"
+                  className="flex items-center justify-between px-3 py-2.5 hover:bg-muted/30 transition-colors duration-200"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${
+                    <div className={`flex h-8 w-8 items-center justify-center text-xs font-semibold border ${
                       isCurrentUser
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-secondary text-secondary-foreground'
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-secondary text-secondary-foreground border-border'
                     }`}>
                       {user[0].toUpperCase()}
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium">
+                      <span className="font-sans text-sm font-medium">
                         {user}
                         {isCurrentUser && (
-                          <span className="text-xs text-muted-foreground ml-1">(You)</span>
+                          <span className="font-sans text-xs text-muted-foreground ml-1">(You)</span>
                         )}
                       </span>
                     </div>
                   </div>
-                  <div className={`h-2 w-2 rounded-full ${isOnline ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
+                  <div className={`h-2 w-2 ${isOnline ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
                 </div>
               )
             })}

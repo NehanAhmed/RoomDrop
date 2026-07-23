@@ -13,7 +13,7 @@ export function FooterSection() {
               <span className="text-xs font-bold text-primary">R</span>
             </div>
             <span className="font-heading text-sm font-semibold tracking-wide text-foreground">
-              RoomDrop
+              Wick Chat
             </span>
           </div>
 
@@ -33,7 +33,7 @@ export function FooterSection() {
 
           <div className="flex items-center gap-4">
             <Link
-              href="https://github.com/NehanAhmed/roomdrop"
+              href="https://github.com/NehanAhmed/Wick"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
@@ -43,7 +43,7 @@ export function FooterSection() {
             </Link>
             <span className="text-xs text-muted-foreground/40">/</span>
             <span className="text-xs text-muted-foreground/60">
-              &copy; {new Date().getFullYear()} RoomDrop
+              &copy; {new Date().getFullYear()} Wick Chat
             </span>
           </div>
         </div>

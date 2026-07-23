@@ -34,8 +34,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <div className="flex min-h-screen items-center justify-center bg-background p-8">
           <div className="max-w-md text-center space-y-4">
-            <div className="p-[3px] rounded-2xl bg-destructive/15 mx-auto w-fit">
-              <div className="flex items-center justify-center w-12 h-12 rounded-[calc(1.5rem-3px)] bg-destructive/10">
+            <div className="border border-destructive/15 bg-destructive/10 mx-auto w-fit">
+              <div className="flex items-center justify-center w-12 h-12 bg-destructive/10">
                 <svg
                   className="w-6 h-6 text-destructive"
                   fill="none"
@@ -51,8 +51,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 </svg>
               </div>
             </div>
-            <h2 className="text-lg font-semibold text-foreground">Something went wrong</h2>
-            <p className="text-sm text-muted-foreground">
+            <h2 className="font-heading text-lg font-semibold tracking-wide text-foreground">Something went wrong</h2>
+            <p className="font-sans text-sm text-muted-foreground">
               {this.state.error?.message || 'An unexpected error occurred'}
             </p>
             <Button onClick={this.handleReset} variant="secondary">

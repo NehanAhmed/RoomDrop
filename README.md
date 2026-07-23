@@ -1,4 +1,4 @@
-# Room Drop 💬
+# Wick Chat 💬
 
 **Signup-less chat rooms to connect with friends and family instantly.**
 
@@ -42,8 +42,8 @@ Create instant chat rooms without the hassle of signing up. Share the link and s
 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/room-drop.git
-cd room-drop
+git clone https://github.com/yourusername/wick-chat.git
+cd wick-chat
 ```
 
 2. Install dependencies
@@ -88,7 +88,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## Project Structure
 
 ```
-room-drop/
+wick-chat/
 ├── app/              # Next.js App Router pages and API routes
 │   ├── api/          # API route handlers
 │   ├── join/         # Join room page

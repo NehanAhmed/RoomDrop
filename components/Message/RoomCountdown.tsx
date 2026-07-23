@@ -60,7 +60,7 @@ export function RoomCountdown({ remainingSeconds: initialSeconds }: RoomCountdow
     return {
       variant: 'normal' as const,
       icon: IconClock,
-      className: 'bg-muted/60 border-border/60 text-muted-foreground',
+      className: 'bg-muted/60 border-border text-muted-foreground',
     }
   }
 
@@ -76,7 +76,7 @@ export function RoomCountdown({ remainingSeconds: initialSeconds }: RoomCountdow
   return (
     <>
       <div
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-300 ease-in-out ${timerState.className}`}
+        className={`flex items-center gap-2 px-3 py-1.5 border transition-all duration-300 ease-in-out ${timerState.className}`}
         role="timer"
         aria-live="polite"
         aria-label={`Room expires in ${formatTime(remainingSeconds)}`}
@@ -84,7 +84,7 @@ export function RoomCountdown({ remainingSeconds: initialSeconds }: RoomCountdow
         <Icon
           className={`h-4 w-4 transition-all duration-300 ${timerState.variant === 'critical' ? 'animate-pulse' : ''}`}
         />
-        <span className="text-sm font-mono font-semibold tabular-nums tracking-tight">
+        <span className="font-mono text-sm font-semibold tabular-nums tracking-tight">
           {formatTime(remainingSeconds)}
         </span>
       </div>
@@ -93,8 +93,8 @@ export function RoomCountdown({ remainingSeconds: initialSeconds }: RoomCountdow
         <DialogContent>
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-[3px] rounded-xl bg-destructive/15">
-                <div className="flex items-center justify-center w-10 h-10 rounded-[calc(1rem-3px)] bg-destructive/10">
+              <div className="border border-destructive/15 bg-destructive/10">
+                <div className="flex items-center justify-center w-10 h-10 bg-destructive/10">
                   <IconAlertTriangle className="w-5 h-5 text-destructive" />
                 </div>
               </div>

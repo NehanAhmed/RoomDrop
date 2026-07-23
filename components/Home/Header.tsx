@@ -10,12 +10,12 @@ export function Header() {
   const mounted = useSyncExternalStore(() => () => {}, () => true, () => false)
 
   return (
-    <header className="border w-full  z-50 h-16">
+    <header className="border-b border-border w-full z-50 h-16">
       <div className="mx-auto flex h-full max-w-243.75 border-r border-l border-border items-center justify-between px-6 lg:px-6">
         <Link href="/">
           <Image
             src="/transparent-logo.png"
-            alt="RoomDrop"
+            alt="Wick Chat"
             width={100}
             height={28}
             priority
@@ -26,7 +26,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           {mounted && <ThemeToggle />}
           <a
-            href="https://github.com/NehanAhmed/roomdrop"
+            href="https://github.com/NehanAhmed/Wick"
             target="_blank"
             rel="noopener noreferrer"
             className="flex h-8 w-8 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"

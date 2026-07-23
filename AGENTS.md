@@ -1,4 +1,4 @@
-# RoomDrop — Agent Guide
+# Wick Chat — Agent Guide
 
 ## Commands
 
@@ -20,7 +20,7 @@ Typecheck: `tsc --noEmit -p tsconfig.json`. DB push: `npx drizzle-kit push`. Use
 - **Next.js 16** App Router. Path alias `@/*` → root.
 - **Tailwind v4** via `@tailwindcss/postcss` + **shadcn/ui** (`base-nova` style, `tabler` icon library).
 - **Fonts**: DM Sans (`--font-sans`), Noto Serif (`--font-heading`), Geist Mono (`--font-geist-mono`). All from `next/font/google`.
-- **Theme**: `next-themes` (dark default, `enableSystem={false}`). Toggle via `Tabs` (light/dark/system). Room-specific **theme variants** (`ocean`, `rose`, `neon`, `sunset`, `forest`) stored in `localStorage` key `roomdrop-theme` — applied as `.theme-{id}` class on `<html>`.
+- **Theme**: `next-themes` (dark default, `enableSystem={false}`). Toggle via `Tabs` (light/dark/system). Room-specific **theme variants** (`ocean`, `rose`, `neon`, `sunset`, `forest`) stored in `localStorage` key `wickchat-theme` — applied as `.theme-{id}` class on `<html>`.
 - **DB**: Neon (serverless Postgres) + Drizzle ORM (`neon-http` driver). Schema: `lib/db/schema.ts`. Migrations: `migrations/`.
   - Config loads `.env` (not `.env.local`) via `dotenv` at `lib/db/index.ts:6`.
   - All routes in `lib/RoomService.ts` use **Redis-first, DB-fallback** pattern.
@@ -73,7 +73,7 @@ All POST routes have `checkBodySize()` guard: 10KB create/join, 100KB send (retu
 - `motion ^12`, `next-themes ^0.4`, `drizzle-orm ^0.45`, `@upstash/redis ^1.35`, `pusher-js ^8.4`.
 - `sharp` installed (required by `next/image`). `lucide-react` used in `theme-switcher.tsx` only.
 - `shadcn` CLI (`^4.13`) installed as devDep for component management. Backed by `@base-ui/react` primitives.
-- `@imagekit/next` for server (`getUploadAuthParams`) + client (`upload`). ImageKit folder: `/roomdrop`.
+- `@imagekit/next` for server (`getUploadAuthParams`) + client (`upload`). ImageKit folder: `/wickchat` (pending confirmation — see ImageKit note).
 - `input-otp` for OTP input in join page. `next-qrcode` for QR display.
 - `@vercel/og` for dynamic OG/Twitter image generation (`app/opengraph-image.tsx`, `app/twitter-image.tsx`).
 

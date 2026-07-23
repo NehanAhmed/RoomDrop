@@ -14,15 +14,15 @@ export default function Error({
   return (
     <main className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-background selection:bg-primary/20">
       <div className="relative z-10 w-full max-w-sm mx-auto px-5 py-16 text-center">
-        <div className="p-[3px] rounded-2xl bg-destructive/15 w-fit mx-auto mb-8">
-          <div className="flex items-center justify-center w-16 h-16 rounded-[calc(2rem-3px)] bg-destructive/10">
+        <div className="border border-destructive/15 bg-destructive/10 w-fit mx-auto mb-8">
+          <div className="flex items-center justify-center w-16 h-16 bg-destructive/10">
             <IconMessageCircle className="w-8 h-8 text-destructive" />
           </div>
         </div>
-        <h1 className="text-[clamp(2.25rem,4vw,3rem)] font-semibold tracking-tighter leading-[1.1] text-foreground mb-3">
+        <h1 className="font-heading text-[clamp(2.25rem,4vw,3rem)] tracking-wide leading-[1.02] text-foreground mb-3">
           Something went wrong
         </h1>
-        <p className="text-sm text-muted-foreground mb-10 max-w-[32ch] mx-auto">
+        <p className="font-sans text-sm text-muted-foreground mb-10 max-w-[32ch] mx-auto">
           {error.message || 'An unexpected error occurred. Please try again.'}
         </p>
         <div className="flex gap-3 justify-center">

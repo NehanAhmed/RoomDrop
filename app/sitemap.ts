@@ -1,8 +1,7 @@
 import { MetadataRoute } from "next";
-
+import { BASE_URL } from "@/lib/constants";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
     return [
         {
             url: BASE_URL,

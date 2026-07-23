@@ -2,8 +2,8 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'RoomDrop — Anonymous Chat Rooms',
-    short_name: 'RoomDrop',
+    name: 'Wick Chat — Anonymous Chat Rooms',
+    short_name: 'Wick Chat',
     description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
     start_url: '/',
     display: 'standalone',

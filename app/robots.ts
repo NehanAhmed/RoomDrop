@@ -1,6 +1,5 @@
 import { MetadataRoute } from "next";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
+import { BASE_URL } from "@/lib/constants";
 
 export default function robots(): MetadataRoute.Robots {
     return {
@@ -33,6 +32,22 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: 'Perplexity-User',
                 allow: '/',
+            },
+            {
+                userAgent: 'GPTBot',
+                disallow: '/',
+            },
+            {
+                userAgent: 'ClaudeBot',
+                disallow: '/',
+            },
+            {
+                userAgent: 'Google-Extended',
+                disallow: '/',
+            },
+            {
+                userAgent: 'Applebot-Extended',
+                disallow: '/',
             },
         ],
         sitemap: `${BASE_URL}/sitemap.xml`,

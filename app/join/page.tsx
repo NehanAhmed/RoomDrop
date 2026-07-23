@@ -1,10 +1,9 @@
 import JoinPageComp from '@/components/JoinPageComponent'
 import { Metadata } from 'next'
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
+import { BASE_URL } from '@/lib/constants'
 
 export const metadata: Metadata = {
-    title: 'Join Room — RoomDrop',
+    title: 'Join Room — Wick Chat',
     description: 'Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.',
     keywords: [
         'join room',
@@ -16,17 +15,17 @@ export const metadata: Metadata = {
         'anonymous chat room'
     ],
     openGraph: {
-        title: "Join Room — RoomDrop",
+        title: "Join Room — Wick Chat",
         description: "Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.",
         url: `${BASE_URL}/join`,
-        siteName: "RoomDrop",
+        siteName: "Wick Chat",
         locale: "en_US",
         type: "website",
     },
 
     twitter: {
         card: "summary_large_image",
-        title: "Join Room — RoomDrop",
+        title: "Join Room — Wick Chat",
         description: "Join an existing anonymous chat room with a 6-character code or QR scan. No signup needed.",
         creator: '@Nehanahmed988'
     },

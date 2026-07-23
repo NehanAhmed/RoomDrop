@@ -9,11 +9,10 @@ import { Suspense } from 'react'
 import { IconLoader2 } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import { ThemeVariantProvider } from '@/components/theme-variant-provider'
+import { BASE_URL } from '@/lib/constants'
 
 const bebasNeueHeading = Bebas_Neue({subsets:['latin'],weight:'400',variable:'--font-heading'})
 const nunitoSans = Nunito_Sans({subsets:['latin'],variable:'--font-sans'})
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
 
 export const viewport: Viewport = {
   themeColor: [
@@ -26,8 +25,8 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: 'RoomDrop — Anonymous Chat Rooms',
-    template: '%s — RoomDrop',
+    default: 'Wick Chat — Anonymous Chat Rooms',
+    template: '%s — Wick Chat',
   },
   description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
   robots: {
@@ -43,24 +42,28 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    siteName: 'RoomDrop',
-    title: 'RoomDrop — Anonymous Chat Rooms',
+    siteName: 'Wick Chat',
+    title: 'Wick Chat — Anonymous Chat Rooms',
     description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
     url: BASE_URL,
     locale: 'en_US',
+    images: [
+      {
+        url: '/og.png',
+        width: 1200,
+        height: 630,
+        alt: 'Wick Chat — Anonymous Chat Rooms',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'RoomDrop — Anonymous Chat Rooms',
+    title: 'Wick Chat — Anonymous Chat Rooms',
     description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
     creator: '@Nehanahmed988',
   },
   alternates: {
-    canonical: BASE_URL,
-  },
-  verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || '',
-    // bing: process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
+    canonical: '/',
   },
   icons: {
     icon: [
@@ -74,24 +77,61 @@ export const metadata: Metadata = {
 
 const webApplicationJsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'RoomDrop',
-  alternateName: 'RoomDrop — Anonymous Chat Rooms',
-  url: BASE_URL,
-  description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
-  applicationCategory: 'Communication',
-  operatingSystem: 'Any',
-  browserRequirements: 'JavaScript enabled',
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-  author: {
-    '@type': 'Person',
-    name: 'Nehan Ahmed',
-    url: 'https://github.com/NehanAhmed',
-  },
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${BASE_URL}/#organization`,
+      name: 'Wick Chat',
+      alternateName: 'Wick Chat — Anonymous Chat Rooms',
+      url: BASE_URL,
+      description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
+      founder: {
+        '@type': 'Person',
+        '@id': `${BASE_URL}/#person`,
+        name: 'Nehan Ahmed',
+        url: 'https://github.com/NehanAhmed',
+      },
+      sameAs: [
+        'https://github.com/NehanAhmed/Wick',
+        'https://github.com/NehanAhmed',
+        'https://x.com/Nehanahmed988',
+        'https://www.nehan.site',
+        'https://www.instagram.com/__nehanahmed',
+        'https://www.facebook.com/profile.php?id=61557055856757',
+      ],
+    },
+    {
+      '@type': 'Person',
+      '@id': `${BASE_URL}/#person`,
+      name: 'Nehan Ahmed',
+      url: 'https://github.com/NehanAhmed',
+      sameAs: [
+        'https://github.com/NehanAhmed',
+        'https://x.com/Nehanahmed988',
+        'https://www.nehan.site',
+        'https://www.instagram.com/__nehanahmed',
+        'https://www.facebook.com/profile.php?id=61557055856757',
+      ],
+    },
+    {
+      '@type': 'WebApplication',
+      '@id': `${BASE_URL}/#webapplication`,
+      name: 'Wick Chat',
+      alternateName: 'Wick Chat — Anonymous Chat Rooms',
+      url: BASE_URL,
+      description: 'Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.',
+      applicationCategory: 'Communication',
+      operatingSystem: 'Any',
+      browserRequirements: 'JavaScript enabled',
+      offers: {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'USD',
+      },
+      author: { '@id': `${BASE_URL}/#person` },
+      publisher: { '@id': `${BASE_URL}/#organization` },
+    },
+  ],
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

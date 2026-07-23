@@ -68,14 +68,13 @@ export default function HomeModal() {
   return (
     <main className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-background selection:bg-primary/20">
       <div className="relative z-10 w-full max-w-sm mx-auto px-5 py-16">
-        {/* ── Logo ── */}
         <div
           className="flex items-center justify-center mb-16"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both` }}
         >
           <Image
             src="/transparent-logo.png"
-            alt="RoomDrop"
+            alt="Wick Chat"
             width={180}
             height={48}
             priority
@@ -83,35 +82,32 @@ export default function HomeModal() {
           />
         </div>
 
-        {/* ── Hero ── */}
         <div
           className="text-center mb-10"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '100ms' }}
         >
-          <h1 className="text-[clamp(2.25rem,6vw,3.5rem)] font-semibold tracking-tighter leading-[1.05] text-foreground mb-4 text-pretty">
+          <h1 className="font-heading text-[clamp(2.25rem,6vw,3.5rem)] tracking-wide leading-[1.02] text-foreground mb-4 text-pretty">
             Chat without
             <br />
             <span className="text-primary">boundaries</span>
           </h1>
-          <p className="text-[0.9375rem] text-muted-foreground leading-relaxed max-w-[40ch] mx-auto">
-            RoomDrop is a private, ephemeral chat platform — create instant, signup-free chat rooms and start talking with complete privacy.
+          <p className="font-sans text-[0.9375rem] text-muted-foreground leading-relaxed max-w-[40ch] mx-auto">
+            Wick Chat is a private, ephemeral chat platform — create instant, signup-free chat rooms and start talking with complete privacy.
           </p>
         </div>
 
-        {/* ── Feature indicators ── */}
         <div
           className="flex items-center justify-center gap-5 mb-10"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '200ms' }}
         >
           {features.map((f) => (
-            <div key={f.label} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <div key={f.label} className="flex items-center gap-1.5 font-sans text-sm text-muted-foreground">
               <f.icon className="w-3.5 h-3.5 text-primary/60" aria-hidden="true" />
               <span>{f.label}</span>
             </div>
           ))}
         </div>
 
-        {/* ── CTAs (Button-in-Button) ── */}
         <div
           className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-12"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '300ms' }}
@@ -120,7 +116,7 @@ export default function HomeModal() {
             <Button className="group w-full relative overflow-hidden active:scale-[0.97] transition-transform duration-150 ease-out-strong">
               <span className="relative z-10 flex items-center gap-2.5">
                 Create Room
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors duration-200">
+                <span className="inline-flex items-center justify-center w-5 h-5 bg-white/20 group-hover:bg-white/30 transition-colors duration-200">
                   <IconArrowRight className="w-3 h-3" aria-hidden="true" />
                 </span>
               </span>
@@ -136,48 +132,44 @@ export default function HomeModal() {
           </Link>
         </div>
 
-        {/* ── Active Session Card (Double-Bezel) ── */}
         {session && (
           <div
             style={{ animation: `fade-up-heavy 800ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: '400ms' }}
           >
-            <div className="p-[3px] rounded-2xl bg-muted/60 border border-border/60">
-              <div className="rounded-[calc(1.75rem-4px)] bg-card px-5 py-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.15)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 animate-ping" />
-                        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
-                      </span>
-                      <span className="text-[0.6875rem] font-medium text-muted-foreground uppercase tracking-[0.12em]">
-                        Active Room
-                      </span>
-                    </div>
-                    <p className="text-lg font-mono font-semibold tracking-tight text-foreground truncate">
-                      {session.roomCode}
-                    </p>
-                    {timeLeft && (
-                      <div className="flex items-center gap-1.5 mt-1.5">
-                        <IconClock className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
-                        <span className="text-xs text-muted-foreground">{timeLeft}</span>
-                      </div>
-                    )}
+            <div className="border border-border bg-card px-5 py-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-75 animate-ping" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+                    </span>
+                    <span className="font-sans text-[0.6875rem] font-medium text-muted-foreground uppercase tracking-[0.12em]">
+                      Active Room
+                    </span>
                   </div>
-                  <Link href={`/room/${session.roomCode}`}>
-                    <Button variant="ghost" size="icon" className="active:scale-[0.93] transition-transform duration-150 ease-out-strong" aria-label="Continue to room">
-                      <IconChevronRight className="w-5 h-5" aria-hidden="true" />
-                    </Button>
-                  </Link>
+                  <p className="font-heading text-lg font-semibold tracking-wide text-foreground truncate">
+                    {session.roomCode}
+                  </p>
+                  {timeLeft && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <IconClock className="w-3.5 h-3.5 text-muted-foreground" aria-hidden="true" />
+                      <span className="font-sans text-xs text-muted-foreground">{timeLeft}</span>
+                    </div>
+                  )}
                 </div>
+                <Link href={`/room/${session.roomCode}`}>
+                  <Button variant="ghost" size="icon" className="active:scale-[0.93] transition-transform duration-150 ease-out-strong" aria-label="Continue to room">
+                    <IconChevronRight className="w-5 h-5" aria-hidden="true" />
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── Footer ── */}
         <p
-          className="text-center text-xs text-muted-foreground/50 mt-12"
+          className="font-sans text-center text-xs text-muted-foreground/50 mt-12"
           style={{ animation: `fade-up 700ms cubic-bezier(0.32,0.72,0,1) both`, animationDelay: session ? '500ms' : '400ms' }}
         >
           No signup &middot; Encrypted &middot; Auto-destruct &middot; Updated 2026

@@ -1,10 +1,9 @@
 import CreateRoomComp from '@/components/CreateRoomComponent'
 import { Metadata } from 'next'
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
+import { BASE_URL } from '@/lib/constants'
 
 export const metadata: Metadata = {
-  title: "Create Room — RoomDrop",
+  title: "Create Room — Wick Chat",
   description: "Create a new chat room",
   keywords: [
     'create room',
@@ -17,16 +16,16 @@ export const metadata: Metadata = {
   ],
 
   openGraph: {
-    title: "Create Room — RoomDrop",
-    description: "Set up your anonymous chat space in seconds. No signup required.",
+    title: "Create Room — Wick Chat",
+    description: "Create a new chat room",
     url: `${BASE_URL}/new`,
-    siteName: "RoomDrop",
+    siteName: "Wick Chat",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Create Room — RoomDrop",
+    title: "Create Room — Wick Chat",
     description: "Set up your anonymous chat space in seconds. No signup required.",
     creator: '@Nehanahmed988'
   },

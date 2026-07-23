@@ -45,7 +45,7 @@ export function AttachmentMenu({ onImageSelect, disabled }: AttachmentMenuProps)
       <DropdownMenu>
         <DropdownMenuTrigger
           disabled={disabled}
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          className="flex h-10 w-10 cursor-pointer items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50 disabled:pointer-events-none"
           aria-label="Attach file"
         >
           <IconPlus className="h-5 w-5" />

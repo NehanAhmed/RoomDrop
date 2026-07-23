@@ -1,13 +1,12 @@
 import { HomePage } from "@/components/Home/HomePage";
 import { Metadata } from "next";
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
+import { BASE_URL } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "RoomDrop — Anonymous Chat Rooms",
+  title: "Wick Chat — Anonymous Chat Rooms",
   description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
   keywords: [
-    'RoomDrop',
+    'Wick Chat',
     'temporary chat rooms',
     'ephemeral chat',
     'no signup chat',
@@ -18,16 +17,16 @@ export const metadata: Metadata = {
     'secure temporary chat'
   ],
   openGraph: {
-    title: "RoomDrop — Anonymous Chat Rooms",
+    title: "Wick Chat — Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
     url: BASE_URL,
-    siteName: "RoomDrop",
+    siteName: "Wick Chat",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "RoomDrop — Anonymous Chat Rooms",
+    title: "Wick Chat — Anonymous Chat Rooms",
     description: "Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.",
     creator: '@Nehanahmed988'
   },
@@ -44,7 +43,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: BASE_URL,
+    canonical: '/',
   }
 }
 

@@ -10,7 +10,7 @@ import {
 const faqs = [
   {
     q: 'Do I need to create an account?',
-    a: 'No. RoomDrop is completely anonymous. Just pick a username and join any room. No email, no password, no personal data required.',
+    a: 'No. Wick Chat is completely anonymous. Just pick a username and join any room. No email, no password, no personal data required.',
   },
   {
     q: 'How long do rooms last?',
@@ -29,8 +29,8 @@ const faqs = [
     a: 'Yes. You can upload images (JPEG, PNG, GIF, WebP) up to 10MB. Images are hosted securely and are deleted when the room expires.',
   },
   {
-    q: 'Is RoomDrop free?',
-    a: 'Yes, completely free. No premium tiers, no hidden costs. RoomDrop is an open-source project built for private, ephemeral communication.',
+    q: 'Is Wick Chat free?',
+    a: 'Yes, completely free. No premium tiers, no hidden costs. Wick Chat is an open-source project built for private, ephemeral communication.',
   },
 ]
 
@@ -45,7 +45,7 @@ export function FAQSection() {
           Frequently asked questions
         </h2>
         <p className="font-sans mt-3 max-w-xl text-base leading-relaxed text-muted-foreground">
-          Everything you need to know about RoomDrop.
+          Everything you need to know about Wick Chat.
         </p>
 
         <div className="mt-16">

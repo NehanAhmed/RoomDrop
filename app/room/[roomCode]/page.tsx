@@ -6,8 +6,7 @@ import { getRoomInfo, roomExists } from '@/lib/RoomService'
 import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import React from 'react'
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://chat.nehan.site';
+import { BASE_URL } from '@/lib/constants'
 
 export async function generateMetadata({ params }: { params: Promise<{ roomCode: string }> }): Promise<Metadata> {
   const { roomCode } = await params
@@ -19,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ roomCode:
       follow: false,
     },
     openGraph: {
-      title: `Room ${roomCode} — RoomDrop`,
+      title: `Room ${roomCode} — Wick Chat`,
       description: 'Join the conversation in this anonymous chat room.',
       url: `${BASE_URL}/room/${roomCode}`,
     },
@@ -51,11 +50,8 @@ const Page = async ({ params }: { params: Promise<{ roomCode: string }> }) => {
         >
             <AppSidebar roomData={roomData} />
 
-            <main className="w-full h-screen flex flex-col">
+            <main className="w-full h-screen flex flex-col border-l border-border">
                 <SiteHeader roomCode={roomCode} />
-
-                {/* Chat Interface - handles messages and input */}
-                {/* currentUser prop removed - will be handled inside component */}
                 <ChatInterface roomCode={roomCode} />
             </main>
         </SidebarProvider>

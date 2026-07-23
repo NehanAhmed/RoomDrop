@@ -1,4 +1,4 @@
-# RoomDrop — Full Codebase Audit Report
+# Wick Chat — Full Codebase Audit Report
 
 **Date:** 2026-07-19  
 **Auditor:** Senior Staff Software Engineer (adversarial review)  
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-RoomDrop is a well-structured, build-clean application with meaningful architecture decisions (Pusher for real-time, Upstash HTTP Redis for serverless, neon-http serverless driver). The build, type-check, and lint all pass. However, the audit reveals several critical and high-severity issues that must be addressed before production deployment:
+Wick Chat is a well-structured, build-clean application with meaningful architecture decisions (Pusher for real-time, Upstash HTTP Redis for serverless, neon-http serverless driver). The build, type-check, and lint all pass. However, the audit reveals several critical and high-severity issues that must be addressed before production deployment:
 
 1. **CRITICAL — `.env` and `.env.local` committed to git with live secrets** (Pusher secret, Upstash token, database URL). The `.gitignore` pattern `.env*` is correct, but these files exist on disk and any accidental force-add or CI misconfiguration would leak credentials.
 2. **HIGH — No rate limiting on any API endpoint.** Room creation, join (code brute-force), and message sending are all unguarded. An adversary can enumerate room codes, flood rooms, and exhaust resources.

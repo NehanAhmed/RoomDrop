@@ -59,7 +59,7 @@ export function ActiveSessionCard() {
 
   return (
     <div className="max-w-sm">
-      <div className="border border-border/60 bg-card p-5 shadow-sm">
+      <div className="border border-border bg-card p-5 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export function ActiveSessionCard() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
                 <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
               </span>
-              <span className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="font-sans text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
                 Active Room
               </span>
             </div>

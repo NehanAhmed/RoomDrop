@@ -1,8 +1,8 @@
-# RoomDrop — Design System
+# Wick Chat — Design System
 
 ## Overview
 
-RoomDrop's landing surface is a dark-first, border-defined editorial layout — a deep canvas (`--background: oklch(0.145 0 0)`) with amber-primary CTAs (`--primary: oklch(0.473 0.137 46.201)` in dark mode), custom **Bebas Neue** display typography for all headings, **Nunito Sans** for body copy, and **Geist Mono** as the base interface font. The system reads as premium, structured, and intentionally measured — every section is framed by connected borders (`border-border`) within a constrained `max-w-5xl` column, creating a blueprint-like grid where content sits inside clearly delineated cells.
+Wick Chat's landing surface is a dark-first, border-defined editorial layout — a deep canvas (`--background: oklch(0.145 0 0)`) with amber-primary CTAs (`--primary: oklch(0.473 0.137 46.201)` in dark mode), custom **Bebas Neue** display typography for all headings, **Nunito Sans** for body copy, and **Geist Mono** as the base interface font. The system reads as premium, structured, and intentionally measured — every section is framed by connected borders (`border-border`) within a constrained `max-w-5xl` column, creating a blueprint-like grid where content sits inside clearly delineated cells.
 
 Type voice splits cleanly into three roles: **Bebas Neue** (weight 400, all-caps display face — used for h1, h2, h3, and brand wordmark), **Nunito Sans** (body text, labels, descriptions), and **Geist Mono** (default interface font on the `<body>`). Bebas Neue uses `tracking-wide` to `tracking-wider` depending on size to compensate for its naturally condensed letterforms.
 
@@ -26,7 +26,7 @@ The page is structured as a vertical stack of bordered sections inside a single 
 
 ### Token Reference
 
-RoomDrop uses CSS custom properties defined in `oklch` color space via `globals.css`. The `@theme inline` block maps them to Tailwind utility classes.
+Wick Chat uses CSS custom properties defined in `oklch` color space via `globals.css`. The `@theme inline` block maps them to Tailwind utility classes.
 
 | Token                    | Light                        | Dark                         | Usage                     |
 | ------------------------ | ---------------------------- | ---------------------------- | ------------------------- |
@@ -161,7 +161,7 @@ The double-stacked borders between sections create a 2px seam, reinforcing the m
 
 ### Whitespace Philosophy
 
-RoomDrop uses compact, deliberate spacing. Section content has `p-6` internal padding. Feature cards have `p-8` internal padding. There is no vertical margin between sections — the border system is the spatial separator. The rhythm is tight, structured, and blueprint-like rather than generous and airy.
+Wick Chat uses compact, deliberate spacing. Section content has `p-6` internal padding. Feature cards have `p-8` internal padding. There is no vertical margin between sections — the border system is the spatial separator. The rhythm is tight, structured, and blueprint-like rather than generous and airy.
 
 ---
 
@@ -214,11 +214,11 @@ The only rounded elements in the system are:
 
 ### Header (`Header.tsx`)
 
-**`site-header`** — Fixed top nav bar. Full width, `border-b border-border`, 64px tall (`h-16`). Contains a centered inner container matching the page content width with `border-l border-r border-border`. Left side holds the RoomDrop wordmark as an `<Image>` (`/transparent-logo.png`, 100×28, `h-7 w-auto`). Right side has the `ThemeToggle` (light/dark/system tabs) and a GitHub icon link.
+**`site-header`** — Fixed top nav bar. Full width, `border-b border-border`, 64px tall (`h-16`). Contains a centered inner container matching the page content width with `border-l border-r border-border`. Left side holds the Wick Chat wordmark as an `<Image>` (`/transparent-logo.png`, 100×28, `h-7 w-auto`). Right side has the `ThemeToggle` (light/dark/system tabs) and a GitHub icon link.
 
 ```
 ┌─────────────────────────────────────────────┐
-│  [RoomDrop Logo]           [ThemeToggle] [GitHub] │
+│  [Wick Chat Logo]           [ThemeToggle] [GitHub] │
 └─────────────────────────────────────────────┘
 ```
 
@@ -241,7 +241,7 @@ CHAT WITHOUT
 BOUNDARIES
 ───
 
-RoomDrop is a private, ephemeral chat platform...
+Wick Chat is a private, ephemeral chat platform...
 
 [Create a Room →]  [Join Room]
 
@@ -300,7 +300,7 @@ Conditionally rendered when a `chat_room_session` exists in `localStorage`. Show
 
 **`site-footer`** — `border-t border-border py-12` with `max-w-7xl centered`. Three sections in a flex row (centered on mobile, row on desktop):
 
-- Left: "R" letter logo (`rounded-md bg-primary/10`) + "RoomDrop" wordmark in `font-heading text-sm font-semibold tracking-wide`
+- Left: "R" letter logo (`rounded-md bg-primary/10`) + "Wick Chat" wordmark in `font-heading text-sm font-semibold tracking-wide`
 - Center: "Built with ❤️ by Nehan Ahmed" — `font-sans text-xs text-muted-foreground` with `IconHeart` in `text-primary/60` and a link to `https://github.com/NehanAhmed`
 - Right: GitHub link + copyright
 

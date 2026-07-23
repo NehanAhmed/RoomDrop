@@ -1,12 +1,18 @@
-# RoomDrop
+# Wick Chat
 > Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.
 
 ## Core pages
-- Home: https://chat.nehan.site/
-- Create Room: https://chat.nehan.site/new
-- Join Room: https://chat.nehan.site/join
+- Home: /
+- Create Room: /new
+- Join Room: /join
 
 ## Features
 - Anonymous: No signup required, no personal data stored
 - Ephemeral: Rooms auto-delete after expiry
 - Private: Real-time encrypted messaging
+
+## Questions about Wick Chat
+- Do I need an account? No. Wick Chat is completely anonymous.
+- How long do rooms last? You choose — from 1 minute to 24 hours.
+- Who can see my messages? Only people with the room code.
+- Is Wick Chat free? Yes, completely free and open-source.

@@ -39,7 +39,7 @@ export async function uploadToImageKit(file: File): Promise<string> {
       signature,
       publicKey,
       useUniqueFileName: true,
-      folder: '/roomdrop',
+      folder: '/wickchat', // TODO: confirm ImageKit folder rename
     })
 
     return response.url!

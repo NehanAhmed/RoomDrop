@@ -57,9 +57,9 @@ const MessageItem = memo(function MessageItem({
     >
       {showAvatar ? (
         <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
+          className={`w-8 h-8 flex items-center justify-center text-xs font-semibold shrink-0 border border-border ${
             isCurrentUser
-              ? 'bg-primary text-primary-foreground'
+              ? 'bg-primary text-primary-foreground border-primary'
               : 'bg-secondary text-secondary-foreground'
           }`}
         >
@@ -71,25 +71,25 @@ const MessageItem = memo(function MessageItem({
 
       <div className={`flex flex-col ${isCurrentUser ? 'items-end' : 'items-start'} max-w-[75%]`}>
         {showAvatar && (
-          <div className={`flex items-center gap-2 mb-1 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
-            <span className="text-xs font-medium text-muted-foreground">
+          <div className={`flex items-center gap-2 mb-1.5 ${isCurrentUser ? 'flex-row-reverse' : ''}`}>
+            <span className="font-sans text-xs font-medium text-foreground">
               {isCurrentUser ? 'You' : msg.userName}
             </span>
-            <span className="text-xs text-muted-foreground/50">
+            <span className="font-sans text-xs text-muted-foreground/50">
               {formatTime(msg.timestamp)}
             </span>
           </div>
         )}
         <div
-          className={`overflow-hidden ${
+          className={`${
             isCurrentUser
-              ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-sm'
-              : 'bg-card border border-border/60 rounded-2xl rounded-bl-sm'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-card border border-border'
           }`}
         >
           {msg.message && (
             <div className="px-4 py-2.5">
-              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+              <p className="font-sans text-sm whitespace-pre-wrap break-words leading-relaxed">
                 {msg.message}
               </p>
             </div>
@@ -107,7 +107,7 @@ const MessageItem = memo(function MessageItem({
                 loading="lazy"
               />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                <IconPhoto className="h-8 w-8 text-white drop-shadow-lg" />
+                <IconPhoto className="h-8 w-8 text-white" />
               </div>
             </button>
           )}
@@ -304,12 +304,12 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
           className="flex flex-col items-center gap-4"
           style={{ animation: 'fade-up 700ms cubic-bezier(0.32,0.72,0,1) both' }}
         >
-          <div className="p-[3px] rounded-2xl bg-primary/10">
-            <div className="flex items-center justify-center w-12 h-12 rounded-[calc(1.5rem-3px)] bg-primary/10">
+          <div className="border border-primary/10 bg-card">
+            <div className="flex items-center justify-center w-12 h-12 bg-primary/10">
               <IconLoader className="w-6 h-6 text-primary animate-spin" />
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">Connecting to room...</p>
+          <p className="font-sans text-sm text-muted-foreground">Connecting to room...</p>
         </div>
       </div>
     )
@@ -324,15 +324,15 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
               className="flex flex-col items-center justify-center h-full text-center py-16"
               style={{ animation: 'fade-up 700ms cubic-bezier(0.32,0.72,0,1) both' }}
             >
-              <div className="p-[3px] rounded-2xl bg-primary/10 mb-4">
-                <div className="flex items-center justify-center w-16 h-16 rounded-[calc(2rem-3px)] bg-primary/10">
+              <div className="border border-primary/10 bg-card mb-4">
+                <div className="flex items-center justify-center w-16 h-16 bg-primary/10">
                   <IconMessageCircle className="w-8 h-8 text-primary" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+              <h3 className="font-heading text-lg font-semibold tracking-wide text-foreground mb-2">
                 No messages yet
               </h3>
-              <p className="text-sm text-muted-foreground max-w-xs">
+              <p className="font-sans text-sm text-muted-foreground max-w-xs">
                 Be the first to send a message in this room
               </p>
             </div>
@@ -356,10 +356,10 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
         </div>
       </div>
 
-      <div className="border-t border-border/60 bg-card/30 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto p-4">
+      <div className="border-t border-border bg-card">
+        <div className="max-w-4xl mx-auto px-4 py-3">
           {imagePreview && (
-            <div className="relative mb-3 inline-block rounded-lg overflow-hidden border border-border/60">
+            <div className="relative mb-3 inline-block border border-border">
               <img
                 src={imagePreview}
                 alt="Preview"
@@ -369,7 +369,7 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
                 type="button"
                 onClick={clearImageSelection}
                 disabled={isUploading}
-                className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                className="absolute top-1 right-1 flex h-6 w-6 items-center justify-center bg-black/50 text-white hover:bg-black/70 transition-colors"
               >
                 <IconX className="h-3.5 w-3.5" />
               </button>
@@ -402,8 +402,8 @@ export default function ChatInterface({ roomCode }: ChatInterfaceProps) {
             </Button>
           </form>
           <div className="flex items-center justify-between mt-2">
-            <p className="text-xs text-muted-foreground/60">Press Enter to send</p>
-            <p className="text-xs text-muted-foreground/60">
+            <p className="font-sans text-xs text-muted-foreground/60">Press Enter to send</p>
+            <p className="font-sans text-xs text-muted-foreground/60">
               {inputMessage.length}/1000
             </p>
           </div>

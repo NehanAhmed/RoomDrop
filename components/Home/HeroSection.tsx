@@ -20,7 +20,7 @@ export function HeroSection() {
       </div>
 
       <div className="relative z-10 w-full  p-6">
-        <div className="mb-8 inline-flex items-center gap-2 border border-primary/15 bg-primary/[0.04] px-4 py-1.5 text-xs font-medium tracking-wide text-primary">
+        <div className="mb-8 inline-flex items-center gap-2 border border-primary/15 bg-primary/[0.04] px-4 py-1.5 font-sans text-xs font-medium tracking-wide text-primary">
           <IconSparkles className="h-3 w-3" />
           Now in public beta
         </div>
@@ -35,7 +35,7 @@ export function HeroSection() {
         </h1>
 
         <p className="font-sans mt-8 max-w-xl text-[0.9375rem] leading-relaxed text-muted-foreground">
-          RoomDrop is a private, ephemeral chat platform — create instant, signup-free
+          Wick Chat is a private, ephemeral chat platform — create instant, signup-free
           chat rooms and start talking with complete privacy. No accounts. No traces.
         </p>
 

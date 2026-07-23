@@ -15,4 +15,4 @@ export const themes: Theme[] = [
   { id: 'forest', name: 'Forest', color: 'oklch(0.527 0.154 150.069)' },
 ]
 
-export const THEME_STORAGE_KEY = 'roomdrop-theme'
+export const THEME_STORAGE_KEY = 'wickchat-theme'

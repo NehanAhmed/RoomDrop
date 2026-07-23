@@ -1,8 +1,11 @@
 import { ImageResponse } from 'next/og'
+import { BASE_URL } from '@/lib/constants'
 
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
-export const alt = 'RoomDrop — Anonymous Chat Rooms'
+export const alt = 'Wick Chat — Anonymous Chat Rooms'
+
+const displayDomain = new URL(BASE_URL).hostname
 
 async function loadGoogleFont(
   fontName: string,
@@ -13,10 +16,8 @@ async function loadGoogleFont(
       `https://fonts.googleapis.com/css2?family=${fontName}:wght@${weight}&display=swap`,
       { signal: AbortSignal.timeout(5000) },
     ).then((r) => r.text())
-
     const url = css.match(/src: url\((.+?)\)/)?.[1]
     if (!url) return null
-
     return fetch(url, { signal: AbortSignal.timeout(5000) }).then((r) => r.arrayBuffer())
   } catch {
     return null
@@ -24,14 +25,16 @@ async function loadGoogleFont(
 }
 
 export default async function Image() {
-  const [fontRegular, fontBold] = await Promise.all([
-    loadGoogleFont('DM+Sans', 400),
-    loadGoogleFont('DM+Sans', 700),
+  const [bebasNeue, nunitoSans, nunitoSansBold] = await Promise.all([
+    loadGoogleFont('Bebas+Neue', 400),
+    loadGoogleFont('Nunito+Sans', 400),
+    loadGoogleFont('Nunito+Sans', 700),
   ])
 
   const fonts: { name: string; data: ArrayBuffer; weight: 400 | 700 }[] = []
-  if (fontRegular) fonts.push({ name: 'DM Sans', data: fontRegular, weight: 400 as const })
-  if (fontBold) fonts.push({ name: 'DM Sans', data: fontBold, weight: 700 as const })
+  if (bebasNeue) fonts.push({ name: 'Bebas Neue', data: bebasNeue, weight: 400 as const })
+  if (nunitoSans) fonts.push({ name: 'Nunito Sans', data: nunitoSans, weight: 400 as const })
+  if (nunitoSansBold) fonts.push({ name: 'Nunito Sans', data: nunitoSansBold, weight: 700 as const })
 
   return new ImageResponse(
     (
@@ -41,105 +44,124 @@ export default async function Image() {
           height: 630,
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0d0d10 0%, #1a1a22 50%, #0d0d10 100%)',
-          fontFamily: fonts.length > 0 ? 'DM Sans' : 'sans-serif',
+          background: '#0d0d10',
           color: '#fafafa',
           position: 'relative',
           overflow: 'hidden',
+          fontFamily: 'Nunito Sans, sans-serif',
         }}
       >
+        {/* Top accent bar — amber primary */}
         <div
           style={{
             position: 'absolute',
-            top: -120,
-            right: -120,
-            width: 480,
-            height: 480,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(217,119,6,0.12) 0%, transparent 70%)',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background: '#d97706',
           }}
         />
+
+        {/* Outer border frame */}
         <div
           style={{
             position: 'absolute',
-            bottom: -160,
-            left: -100,
-            width: 400,
-            height: 400,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(217,119,6,0.08) 0%, transparent 70%)',
+            top: 24,
+            left: 24,
+            right: 24,
+            bottom: 24,
+            border: '1px solid rgba(255,255,255,0.1)',
           }}
         />
+
+        {/* Content — left-aligned, more compact for Twitter */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            alignItems: 'center',
-            gap: 20,
+            justifyContent: 'center',
+            flex: 1,
+            padding: '0 80px',
             zIndex: 1,
           }}
         >
-          <h1
+          {/* Label — uppercase tracking */}
+          <span
             style={{
-              fontSize: 80,
+              fontSize: 14,
               fontWeight: 700,
-              letterSpacing: '-0.02em',
-              margin: 0,
-              background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              color: 'transparent',
-            }}
-          >
-            RoomDrop
-          </h1>
-          <p
-            style={{
-              fontSize: 28,
-              fontWeight: 400,
-              color: '#a1a1aa',
-              margin: 0,
-              letterSpacing: '0.02em',
+              color: '#d97706',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              marginBottom: 16,
             }}
           >
             Anonymous Chat Rooms
-          </p>
+          </span>
+
+          {/* Heading — Bebas Neue */}
+          <h1
+            style={{
+              fontSize: 104,
+              fontWeight: 400,
+              letterSpacing: '0.1em',
+              margin: 0,
+              color: '#fafafa',
+              fontFamily: 'Bebas Neue, sans-serif',
+              lineHeight: 1,
+            }}
+          >
+            WICK CHAT
+          </h1>
+
+          {/* Hairline divider */}
           <div
             style={{
-              width: 60,
+              width: 80,
               height: 2,
-              background: 'linear-gradient(90deg, transparent, #d97706, transparent)',
-              marginTop: 8,
+              background: '#d97706',
+              marginTop: 24,
+              marginBottom: 24,
             }}
           />
+
+          {/* Description */}
           <p
             style={{
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: 400,
-              color: '#71717a',
+              color: '#a1a1aa',
               margin: 0,
-              maxWidth: 500,
-              textAlign: 'center',
+              maxWidth: 520,
               lineHeight: 1.6,
             }}
           >
             Create instant, signup-free chat rooms. Share a link and start chatting with complete privacy.
           </p>
-          <p
+        </div>
+
+        {/* Bottom bar — domain */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '18px 0',
+            borderTop: '1px solid rgba(255,255,255,0.05)',
+          }}
+        >
+          <span
             style={{
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 400,
               color: '#52525b',
-              margin: 0,
-              marginTop: 16,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.15em',
               textTransform: 'uppercase',
             }}
           >
-            chat.nehan.site
-          </p>
+            {displayDomain}
+          </span>
         </div>
       </div>
     ),
