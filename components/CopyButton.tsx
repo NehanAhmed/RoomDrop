@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { IconCheck, IconCopy } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'

@@ -22,6 +22,8 @@ export async function GET(
             success: true,
             messages,
             count: messages.length,
+        }, {
+            headers: { 'Cache-Control': 'private, no-cache' },
         });
     } catch (error) {
         console.error('Error fetching messages:', error);

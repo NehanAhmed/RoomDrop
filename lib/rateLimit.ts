@@ -6,7 +6,7 @@ function createLimiter(maxRequests: number, window: Duration) {
   return new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(maxRequests, window),
-    analytics: true,
+    analytics: process.env.UPSTASH_RATE_LIMIT_ANALYTICS === 'true',
     prefix: 'ratelimit',
   });
 }

@@ -2,7 +2,7 @@
 import { redis } from '@/lib/redis';
 import { db } from '@/lib/db';
 import { rooms, participants, messages } from '@/lib/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { Message, Room, RoomInfo } from './type';
 
 
@@ -38,10 +38,12 @@ export async function createRoom(
 
     // Check uniqueness in both Redis and DB
     while (attempts < maxAttempts) {
-        const redisExists = await redis.exists(`room:${roomCode}`);
-        const dbExists = await db.select().from(rooms).where(eq(rooms.code, roomCode)).limit(1);
+        const [redisExists, dbRoom] = await Promise.all([
+            redis.exists(`room:${roomCode}`),
+            db.select({ code: rooms.code }).from(rooms).where(eq(rooms.code, roomCode)).limit(1),
+        ]);
         
-        if (!redisExists && dbExists.length === 0) break;
+        if (!redisExists && dbRoom.length === 0) break;
         
         roomCode = generateRoomCode();
         attempts++;
@@ -77,20 +79,21 @@ export async function createRoom(
 
     // Store in DB for persistence
     try {
-        await db.insert(rooms).values({
-            code: roomCode,
-            creator: userName,
-            duration,
-            participantsCount,
-            expiresAt,
-            messageCount: 0,
-        });
-
-        await db.insert(participants).values({
-            roomCode,
-            userName,
-            isOnline: true,
-        });
+        await Promise.all([
+            db.insert(rooms).values({
+                code: roomCode,
+                creator: userName,
+                duration,
+                participantsCount,
+                expiresAt,
+                messageCount: 0,
+            }),
+            db.insert(participants).values({
+                roomCode,
+                userName,
+                isOnline: true,
+            }),
+        ]);
     } catch (error) {
         console.error('Error creating room in DB:', error);
         // Redis is primary, so we continue even if DB fails
@@ -157,21 +160,19 @@ export async function getRoomInfo(roomCode: string): Promise<RoomInfo | null> {
     const room = await getRoom(roomCode);
     if (!room) return null;
 
-    const ttl = await redis.ttl(`room:${roomCode}`);
-    const onlineUsers = await redis.smembers(`online:${roomCode}`);
+    const [ttl, onlineUsers, realMsgCount] = await Promise.all([
+        redis.ttl(`room:${roomCode}`),
+        redis.smembers(`online:${roomCode}`),
+        (async () => {
+            try {
+                return await db.$count(messages, eq(messages.roomCode, roomCode));
+            } catch {
+                return await redis.llen(`messages:${roomCode}`);
+            }
+        })(),
+    ]);
+
     const distinctUsers = Array.from(new Set(onlineUsers as string[]));
-    
-    // Get actual message count from DB
-    let realMsgCount = 0;
-    try {
-        const result = await db
-            .select()
-            .from(messages)
-            .where(eq(messages.roomCode, roomCode));
-        realMsgCount = result.length;
-    } catch {
-        realMsgCount = await redis.llen(`messages:${roomCode}`);
-    }
 
     return {
         ...room,
@@ -224,47 +225,51 @@ export async function joinRoom(
         return { success: false, error: 'Room has expired', statusCode: 410 };
     }
 
-    // Update Redis
-    await redis.setex(`room:${roomCode}`, ttl, JSON.stringify(room));
-    await redis.sadd(`online:${roomCode}`, userName);
-    await redis.expire(`online:${roomCode}`, ttl);
-
-    // Update DB
-    try {
-        const existingParticipant = await db
-            .select()
-            .from(participants)
-            .where(
-                and(
-                    eq(participants.roomCode, roomCode),
-                    eq(participants.userName, userName)
-                )
-            )
-            .limit(1);
-
-        if (existingParticipant.length === 0) {
-            await db.insert(participants).values({
-                roomCode,
-                userName,
-                isOnline: true,
-            });
-        } else {
-            await db
-                .update(participants)
-                .set({ 
-                    isOnline: true, 
-                    lastSeenAt: new Date() 
-                })
-                .where(
-                    and(
-                        eq(participants.roomCode, roomCode),
-                        eq(participants.userName, userName)
+    // Update Redis and DB in parallel
+    await Promise.all([
+        (async () => {
+            await redis.setex(`room:${roomCode}`, ttl, JSON.stringify(room));
+            await redis.sadd(`online:${roomCode}`, userName);
+            await redis.expire(`online:${roomCode}`, ttl);
+        })(),
+        (async () => {
+            try {
+                const existingParticipant = await db
+                    .select({ id: participants.id })
+                    .from(participants)
+                    .where(
+                        and(
+                            eq(participants.roomCode, roomCode),
+                            eq(participants.userName, userName)
+                        )
                     )
-                );
-        }
-    } catch (error) {
-        console.error('Error updating participant in DB:', error);
-    }
+                    .limit(1);
+
+                if (existingParticipant.length === 0) {
+                    await db.insert(participants).values({
+                        roomCode,
+                        userName,
+                        isOnline: true,
+                    });
+                } else {
+                    await db
+                        .update(participants)
+                        .set({ 
+                            isOnline: true, 
+                            lastSeenAt: new Date() 
+                        })
+                        .where(
+                            and(
+                                eq(participants.roomCode, roomCode),
+                                eq(participants.userName, userName)
+                            )
+                        );
+                }
+            } catch (error) {
+                console.error('Error updating participant in DB:', error);
+            }
+        })(),
+    ]);
 
     return { success: true, room };
 }
@@ -338,12 +343,10 @@ export async function addMessage(
             timestamp: new Date(timestamp),
         });
 
-        // Update message count in room
+        // Increment message count atomically
         await db
             .update(rooms)
-            .set({ 
-                messageCount: db.$count(messages, eq(messages.roomCode, roomCode))
-            })
+            .set({ messageCount: sql`message_count + 1` })
             .where(eq(rooms.code, roomCode));
     } catch (error) {
         console.error('Error saving message to DB:', error);
@@ -377,7 +380,13 @@ export async function getMessages(
     // Fallback to DB
     try {
         const dbMessages = await db
-            .select()
+            .select({
+                id: messages.id,
+                userName: messages.userName,
+                message: messages.message,
+                imageUrl: messages.imageUrl,
+                timestamp: messages.timestamp,
+            })
             .from(messages)
             .where(eq(messages.roomCode, roomCode))
             .orderBy(desc(messages.timestamp))
@@ -396,9 +405,8 @@ export async function getMessages(
             const ttl = await redis.ttl(`room:${roomCode}`);
             if (ttl > 0) {
                 const key = `messages:${roomCode}`;
-                for (const msg of formattedMessages.reverse()) {
-                    await redis.lpush(key, JSON.stringify(msg));
-                }
+                const messagesJson = formattedMessages.map(m => JSON.stringify(m));
+                await redis.rpush(key, ...messagesJson);
                 await redis.expire(key, ttl);
             }
         }

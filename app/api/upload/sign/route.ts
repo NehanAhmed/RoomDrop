@@ -21,6 +21,8 @@ export async function GET(req: NextRequest) {
       signature,
       publicKey: process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY,
       urlEndpoint: process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT,
+    }, {
+      headers: { 'Cache-Control': 'private, max-age=30' },
     });
   } catch (error) {
     console.error('Error generating upload auth:', error);

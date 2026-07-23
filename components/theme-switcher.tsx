@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useSyncExternalStore } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import { Palette } from 'lucide-react'
+import { IconPalette } from '@tabler/icons-react'
 import { themes, type ThemeId } from '../lib/themes'
 import { useThemeVariant } from './theme-variant-provider'
 
@@ -40,7 +40,7 @@ export function ThemeVariantSwitcher() {
         whileTap={{ scale: 0.95 }}
         aria-label="Switch theme variant"
       >
-        <Palette className="h-5 w-5" />
+        <IconPalette className="h-5 w-5" />
       </motion.button>
 
       <AnimatePresence>

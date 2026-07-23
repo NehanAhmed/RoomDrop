@@ -1,5 +1,3 @@
-'use client'
-
 import { IconPlus, IconLink, IconMessage, IconEraser } from '@tabler/icons-react'
 
 const steps = [

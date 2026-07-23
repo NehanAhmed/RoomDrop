@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkSendMessageRateLimit, checkBodySize } from '@/lib/rateLimit';
+import { getPusherServer } from '@/lib/pusher';
+import { addMessage } from '@/lib/RoomService';
 
 interface SendMessageRequest {
   roomCode: string;
@@ -19,9 +21,7 @@ export async function POST(req: NextRequest) {
     if (rateLimit) return rateLimit;
 
   try {
-    const { getPusherServer } = await import('@/lib/pusher');
     const pusherServer = getPusherServer();
-    const { addMessage } = await import('@/lib/RoomService');
 
     const body: SendMessageRequest = await req.json();
     const { roomCode, userName, message, imageUrl } = body;

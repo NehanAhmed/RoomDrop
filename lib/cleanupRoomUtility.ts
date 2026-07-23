@@ -1,13 +1,9 @@
 import { db } from '@/lib/db';
 import { rooms } from '@/lib/db/schema';
-import { lt, eq } from 'drizzle-orm';
+import { lt } from 'drizzle-orm';
 
 const BATCH_SIZE = 100;
 
-/**
- * Cleanup expired rooms from the database in batches
- * Run this as a cron job or scheduled task
- */
 export async function cleanupExpiredRooms(): Promise<{
   deletedCount: number;
   errors: string[];
@@ -30,18 +26,17 @@ export async function cleanupExpiredRooms(): Promise<{
         break;
       }
 
-      for (const room of expiredRooms) {
-        try {
-          await db
-            .delete(rooms)
-            .where(eq(rooms.code, room.code));
+      try {
+        const result = await db
+          .delete(rooms)
+          .where(lt(rooms.expiresAt, new Date()))
+          .returning({ code: rooms.code });
 
-          deletedCount++;
-        } catch (error) {
-          const errorMsg = `Failed to delete room ${room.code}: ${error}`;
-          errors.push(errorMsg);
-          console.error(errorMsg);
-        }
+        deletedCount += result.length;
+      } catch (error) {
+        const errorMsg = `Failed to delete batch of ${expiredRooms.length} rooms: ${error}`;
+        errors.push(errorMsg);
+        console.error(errorMsg);
       }
     }
 
@@ -58,10 +53,6 @@ export async function cleanupExpiredRooms(): Promise<{
   }
 }
 
-/**
- * Mark inactive rooms based on last activity
- * This doesn't delete them, just marks them as inactive
- */
 export async function markInactiveRooms(): Promise<number> {
   try {
     const result = await db

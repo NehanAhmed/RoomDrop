@@ -1,5 +1,3 @@
-'use client'
-
 import { IconShield, IconClock, IconUsers, IconLock, IconBolt, IconShare } from '@tabler/icons-react'
 
 const features = [

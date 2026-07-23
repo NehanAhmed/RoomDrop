@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { joinRoom, addMessage } from "@/lib/RoomService";
 import { checkJoinRateLimit, checkBodySize } from "@/lib/rateLimit";
+import { getPusherServer } from "@/lib/pusher";
 
 interface JoinRoomType {
     code: string
@@ -57,7 +58,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { getPusherServer } = await import('@/lib/pusher');
         const pusherServer = getPusherServer();
 
         const joinMessage = await addMessage(code, 'System', `${trimmedName} joined the room`);

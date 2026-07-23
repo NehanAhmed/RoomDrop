@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { IconArrowRight, IconUsers, IconShield, IconClock, IconSparkles, IconMessage } from '@tabler/icons-react'
